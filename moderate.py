@@ -210,7 +210,7 @@ def handleGroup(update, context):
 
 def handlePrivate(update, context):
 	update.message.reply_text(
-		'Add me to the group you admin and promote me as Admin please.')
+		'Add me to the group promote me as admin please.')
 
 def deleteMsgHandle(update, context):
 	deleteMsg(update.message)

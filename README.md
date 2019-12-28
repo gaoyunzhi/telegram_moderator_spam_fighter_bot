@@ -36,10 +36,6 @@ Add this bot to group, this bot can:
 * Delete new joiner's multimedia posts
 * Bot owner can mark spam user and delete their future posts
 
-Feedback / feature requests are welcomed at @dushufenxiang_chat.
-
-Debug info is recorded in @bot_debug.
-
 Github: https://github.com/gaoyunzhi/telegram_moderator_spam_fighter_bot
 
 ## future feature
