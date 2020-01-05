@@ -219,11 +219,11 @@ def deleteMsgHandle(update, context):
 
 dp = updater.dispatcher
 dp.add_handler(
-		MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=2)
+		MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
 dp.add_handler(
-		MessageHandler(Filters.status_update.new_chat_members, deleteMsgHandle), group = 1)
+		MessageHandler(Filters.status_update.new_chat_members, deleteMsgHandle), group = 2)
 dp.add_handler(
-		MessageHandler(Filters.status_update.left_chat_member, deleteMsgHandle), group = 1)
+		MessageHandler(Filters.status_update.left_chat_member, deleteMsgHandle), group = 2)
 dp.add_handler(MessageHandler(Filters.group, handleGroup), group = 3)
 dp.add_handler(MessageHandler(Filters.private, handlePrivate), group = 4)
 
