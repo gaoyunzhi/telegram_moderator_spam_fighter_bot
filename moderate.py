@@ -60,6 +60,8 @@ def ban(bad_user):
 def handleJoin(update, context):
 	msg = update.message
 	for member in msg.new_chat_members:
+		if member.id == this_bot:
+			continue
 		if needKick(member):
 			context.bot.kick_chat_member(msg.chat.id, member.id)
 			ban(member)
@@ -68,7 +70,7 @@ def handleJoin(update, context):
 				parse_mode='Markdown',
 				disable_web_page_preview=True)
 			continue
-		if member.id != this_bot and member.id not in JOIN_TIME:
+		if member.id not in JOIN_TIME:
 			JOIN_TIME[msg.chat.id] = JOIN_TIME.get(msg.chat.id, {})
 			JOIN_TIME[msg.chat.id][member.id] = time.time()
 
