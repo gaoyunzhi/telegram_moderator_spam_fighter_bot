@@ -105,7 +105,10 @@ def getGroupName(msg):
 	if msg.chat.username:
 		link = 't.me/' + msg.chat.username 
 	else:
-		link = tele.export_chat_invite_link(msg.chat.id)
+		try:
+			link = tele.export_chat_invite_link(msg.chat.id)
+		except:
+			link = ''
 	return '[%s](%s)' % (msg.chat.title, link)
 
 def getMsgType(msg):
