@@ -16,7 +16,8 @@ with open('CREDENTIALS') as f:
     CREDENTIALS = yaml.load(f, Loader=yaml.FullLoader)
 
 updater = Updater(CREDENTIALS['token'], use_context=True)
-r = updater.bot.send_message(chat_id=-1001198682178, text='test')
+tele = updater.bot
+r = tele.send_message(chat_id=-1001198682178, text='test')
 r.delete()
 debug_group = r.chat
 this_bot = r.from_user.id
@@ -101,8 +102,11 @@ def shouldDelete(msg):
 	 or isBlockedUser(msg.from_user.id)
 
 def getGroupName(msg):
-	return '[' + (msg.chat.title or str(msg.chat.id)) + \
-		'](t.me/' + (msg.chat.username or '') + ')'
+	if msg.chat.username:
+		link = 't.me/' + msg.chat.username 
+	else:
+		link = tele.export_chat_invite_link(msg.chat.id)
+	return '[%s](%s)' % (msg.chat.title, link)
 
 def getMsgType(msg):
 	if msg.photo:
