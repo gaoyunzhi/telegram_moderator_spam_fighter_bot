@@ -18,7 +18,7 @@ with open('CREDENTIALS') as f:
 updater = Updater(CREDENTIALS['token'], use_context=True)
 tele = updater.bot
 debug_group = tele.get_chat(-1001198682178)
-this_bot = r.from_user.id
+this_bot = tele.id
 BOT_OWNER = CREDENTIALS['owner']
 
 quotes = ["'", '"', '‘', '“', '【']
