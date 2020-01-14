@@ -98,8 +98,8 @@ def isBlockedUser(id):
 	return str(id) in BLACKLIST
 
 def shouldDelete(msg):
-	return (isNewUser(msg) and (isMultiMedia(msg) or containRiskyWord(msg))) \
-	 or isBlockedUser(msg.from_user.id)
+	return isBlockedUser(msg.from_user.id) or \
+		(isNewUser(msg) and (isMultiMedia(msg) or containRiskyWord(msg))) 
 
 def getGroupName(msg):
 	if msg.chat.username:
