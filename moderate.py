@@ -17,9 +17,7 @@ with open('CREDENTIALS') as f:
 
 updater = Updater(CREDENTIALS['token'], use_context=True)
 tele = updater.bot
-r = tele.send_message(chat_id=-1001198682178, text='test')
-r.delete()
-debug_group = r.chat
+debug_group = tele.get_chat(-1001198682178)
 this_bot = r.from_user.id
 BOT_OWNER = CREDENTIALS['owner']
 
@@ -135,26 +133,17 @@ def getActionUsers(msg):
 
 @log_on_fail(debug_group)
 def deleteMsg(msg):
-	text = msg.text
-	if text:
-		text = ': ' + text
-	else:
-		text = ''
 	action_users = getActionUsers(msg)
 	names = ', '.join([getDisplayUser(x) for x in action_users])
 	debug_group.send_message(
 		text=names + ' ' + getMsgType(msg) + 
-		' ' + getGroupName(msg) + text,
+		' ' + getGroupName(msg),
 		parse_mode='Markdown',
 		disable_web_page_preview=True)
-	if msg.photo:
-		filename = getTmpFile(msg)
-		debug_group.send_photo(photo=open(filename, 'rb'))
-		os.system('rm ' + filename)
-	if msg.video:
-		filename = getTmpFile(msg)
-		debug_group.send_document(document=open(filename, 'rb'))
-		os.system('rm ' + filename)
+	try:
+		msg.forward(debug_group.id)
+	except:
+		pass
 	msg.delete()
 
 def unban(not_so_bad_user):
