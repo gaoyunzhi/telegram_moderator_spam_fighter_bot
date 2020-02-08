@@ -165,11 +165,13 @@ def markAction(msg, action):
 		if item['type'] == 'text_mention':
 			action(item.user)
 			return
-	action(msg.reply_to_message.from_user)
 	if msg.chat_id != debug_group.id:
+		action(msg.reply_to_message.from_user)
 		r = msg.reply_text('请大家互相理解，友好交流。')
 		r.delete()
 		msg.delete()
+	else:
+		action(msg.reply_to_message.forward_from)
 
 @log_on_fail(debug_group)
 def remindIfNecessary(msg):
