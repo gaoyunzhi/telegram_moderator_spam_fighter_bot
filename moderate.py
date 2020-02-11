@@ -10,7 +10,7 @@ import yaml
 
 
 JOIN_TIME = {}
-NEW_USER_WAIT_TIME = 3600 * 8
+NEW_USER_WAIT_TIME = 3600 * 24 * 3
 
 with open('CREDENTIALS') as f:
     CREDENTIALS = yaml.load(f, Loader=yaml.FullLoader)
