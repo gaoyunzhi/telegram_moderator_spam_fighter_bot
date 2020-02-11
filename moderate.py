@@ -192,7 +192,7 @@ def remindIfNecessary(msg):
 
 @log_on_fail(debug_group)
 def handleGroup(update, context):
-	msg = update.message
+	msg = update.effective_message
 	if not msg:
 		return
 	if shouldDelete(msg):
