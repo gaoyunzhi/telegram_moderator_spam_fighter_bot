@@ -224,7 +224,6 @@ def handleAutoUnblock(usr = None, chat = None):
 		can_send_media_messages=True, 
 		can_send_polls=True, 
 		can_add_web_page_previews=True)
-	print(usr, unblock_requests.keys(), chat, chats)
 	for u in (usr or unblock_requests.keys()):
 		for c in (chat or chats):
 			try:
