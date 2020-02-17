@@ -261,7 +261,6 @@ def handleGroup(update, context):
 	if msg.text in ['unban', 'w']:  
 		markAction(msg, unban)
 
-@log_on_fail(debug_group)
 def handlePrivate(update, context):
 	global unblock_requests
 	update.message.reply_text(
