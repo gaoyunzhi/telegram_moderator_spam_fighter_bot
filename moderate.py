@@ -147,6 +147,15 @@ def deleteMsg(msg):
 	msg.delete()
 
 def unban(not_so_bad_user):
+	if not_so_bad_user.id in JOIN_TIME:
+		del JOIN_TIME[not_so_bad_user.id]
+		debug_group.send_message(
+			text=getDisplayUser(not_so_bad_user) + ' new user whitelisted.',
+			parse_mode='Markdown')
+	else:
+		debug_group.send_message(
+			text=getDisplayUser(not_so_bad_user) + ' is old user.',
+			parse_mode='Markdown')
 	if str(not_so_bad_user.id) not in BLACKLIST:
 		debug_group.send_message(
 			text=getDisplayUser(not_so_bad_user) + ' not banned',
@@ -182,7 +191,7 @@ def remindIfNecessary(msg):
 			'。 谢谢啦！'
 		autoDestroy(msg.reply_text(reminder), 10)
 	emotional_words = ['意淫', '凭什么']
-	if matchKey(msg.text, emotional_words) or msg.text.count('?') + msg.text.count('？') >= 3:
+	if matchKey(msg.text, emotional_words):
 		reminder = '反问，反讽不利于友好交流哦，建议您换成大家更容易理解的表达哦。谢谢啦！'
 		autoDestroy(msg.reply_text(reminder), 10)
 	attacking_words = ['太low']
@@ -197,15 +206,17 @@ def handleGroup(update, context):
 		return
 	if shouldDelete(msg):
 		return deleteMsg(msg)
+	if isNewUser(msg) and containRiskyWord(msg):
+		markAction(msg, ban)
 	remindIfNecessary(msg)
 	if msg.from_user.id != BOT_OWNER:
 		return
-	if msg.text in ['spam', 'ban']:
+	if msg.text in ['spam', 'ban', 'b']:
 		markAction(msg, ban)
 	if msg.text == 'spam':
 		context.bot.delete_message(
 			chat_id=msg.chat_id, message_id=msg.reply_to_message.message_id)
-	if msg.text == 'unban':  
+	if msg.text in ['unban', 'w']:  
 		markAction(msg, unban)
 
 def handlePrivate(update, context):
