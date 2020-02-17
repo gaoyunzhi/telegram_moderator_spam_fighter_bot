@@ -39,7 +39,19 @@ def saveBlacklist():
 
 def needKick(user):
 	name = getDisplayUser(user)
-	return matchKey(name, KICK_KEYS)
+	return matchKey(name.lower(), KICK_KEYS)
+
+def highRiskUsr(usr):
+	name = getDisplayUser(user).lower()
+	try:
+		int(user.first_name)
+		return True
+	except:
+		pass
+	for index, x in enumerate(name):
+		if name[index:index + 3] == x * 3:
+			return True
+	return matchKey(name, BLACKLIST)
 
 def ban(bad_user):
 	if bad_user.id == this_bot:
@@ -69,6 +81,8 @@ def handleJoin(update, context):
 				parse_mode='Markdown',
 				disable_web_page_preview=True)
 			continue
+		if highRiskUsr(member):
+			ban(member)
 		if member.id not in JOIN_TIME:
 			JOIN_TIME[msg.chat.id] = JOIN_TIME.get(msg.chat.id, {})
 			JOIN_TIME[msg.chat.id][member.id] = time.time()
