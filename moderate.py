@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from telegram.ext import Updater, MessageHandler, Filters
+from telegram import ChatPermissions
 import time
 import os
 import traceback as tb
 from telegram_util import getDisplayUser, log_on_fail, getTmpFile, autoDestroy, matchKey
 import yaml
 
-
+unblock_requests = set()
+chats = set()
 JOIN_TIME = {}
 NEW_USER_WAIT_TIME = 3600 * 24 * 3
 
@@ -214,10 +216,25 @@ def remindIfNecessary(msg):
 		autoDestroy(msg.reply_text(reminder), 10)
 
 @log_on_fail(debug_group)
+def handleAutoUnblock(usr = None, chat = None):
+	p = ChatPermissions(
+		can_send_messages=True, 
+		can_send_media_messages=True, 
+		can_send_polls=True, 
+		can_add_web_page_previews=True)
+	for u in (usr or unblock_requests):
+		for c in (chat or chats):
+			m = tele.restrict_chat_member(c, u, p)
+
+@log_on_fail(debug_group)
 def handleGroup(update, context):
+	global chats
 	msg = update.effective_message
 	if not msg:
 		return
+	if not msg.chat.id in chats:
+		chats.add(msg.chat.id)
+		handleAutoUnblock(chat = [msg.chat.id])
 	if shouldDelete(msg):
 		return deleteMsg(msg)
 	if isNewUser(msg) and containRiskyWord(msg):
@@ -234,8 +251,14 @@ def handleGroup(update, context):
 		markAction(msg, unban)
 
 def handlePrivate(update, context):
+	global unblock_requests
 	update.message.reply_text(
-		'Add me to the group promote me as admin please.')
+		'''For group owner, Add me to the group and promote me as admin please. 
+		If you are here for requesting unblock, your request has recieved.''')
+	usr_id = update.effective_usr.id
+	if usr_id not in unblock_requests:
+		unblock_requests.add(usr_id)
+		handleAutoUnblock(usr = [usr_id])
 
 def deleteMsgHandle(update, context):
 	deleteMsg(update.message)
