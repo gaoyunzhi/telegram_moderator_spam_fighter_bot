@@ -224,6 +224,7 @@ def handleAutoUnblock(usr = None, chat = None):
 		can_send_media_messages=True, 
 		can_send_polls=True, 
 		can_add_web_page_previews=True)
+	print(usr, unblock_requests.keys(), chat, chats)
 	for u in (usr or unblock_requests.keys()):
 		for c in (chat or chats):
 			try:
@@ -261,6 +262,7 @@ def handleGroup(update, context):
 	if msg.text in ['unban', 'w']:  
 		markAction(msg, unban)
 
+@log_on_fail(debug_group)
 def handlePrivate(update, context):
 	global unblock_requests
 	update.message.reply_text(
@@ -270,7 +272,7 @@ For group member requesting unblock, your request has recieved.''')
 	usr = update.effective_user
 	if usr.id not in unblock_requests:
 		unblock_requests[usr.id] = usr
-		handleAutoUnblock(usr = [usr_id])
+		handleAutoUnblock(usr = [usr.id])
 
 def deleteMsgHandle(update, context):
 	deleteMsg(update.message)
