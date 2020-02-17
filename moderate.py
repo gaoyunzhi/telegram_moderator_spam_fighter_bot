@@ -9,7 +9,7 @@ import traceback as tb
 from telegram_util import getDisplayUser, log_on_fail, getTmpFile, autoDestroy, matchKey
 import yaml
 
-unblock_requests = set()
+unblock_requests = {}
 chats = set()
 JOIN_TIME = {}
 NEW_USER_WAIT_TIME = 3600 * 24 * 3
@@ -79,7 +79,7 @@ def handleJoin(update, context):
 			context.bot.kick_chat_member(msg.chat.id, member.id)
 			ban(member)
 			debug_group.send_message(
-				getDisplayUser(member) + ' kicked from ' + getGroupName(msg),
+				getDisplayUser(member) + ' kicked from ' + getGroupName(msg.chat),
 				parse_mode='Markdown',
 				disable_web_page_preview=True)
 			continue
@@ -115,15 +115,15 @@ def shouldDelete(msg):
 	return isBlockedUser(msg.from_user.id) or \
 		(isNewUser(msg) and (isMultiMedia(msg) or containRiskyWord(msg))) 
 
-def getGroupName(msg):
-	if msg.chat.username:
-		link = 't.me/' + msg.chat.username 
+def getGroupName(chat):
+	if chat.username:
+		link = 't.me/' + chat.username 
 	else:
 		try:
-			link = tele.export_chat_invite_link(msg.chat.id)
+			link = tele.export_chat_invite_link(chat.id)
 		except:
 			link = ''
-	return '[%s](%s)' % (msg.chat.title, link)
+	return '[%s](%s)' % (chat.title, link)
 
 def getMsgType(msg):
 	if msg.photo:
@@ -153,7 +153,7 @@ def deleteMsg(msg):
 	names = ', '.join([getDisplayUser(x) for x in action_users])
 	debug_group.send_message(
 		text=names + ' ' + getMsgType(msg) + 
-		' ' + getGroupName(msg),
+		' ' + getGroupName(msg.chat),
 		parse_mode='Markdown',
 		disable_web_page_preview=True)
 	try:
@@ -217,14 +217,25 @@ def remindIfNecessary(msg):
 
 @log_on_fail(debug_group)
 def handleAutoUnblock(usr = None, chat = None):
+	global unblock_requests
+	global chats
 	p = ChatPermissions(
 		can_send_messages=True, 
 		can_send_media_messages=True, 
 		can_send_polls=True, 
 		can_add_web_page_previews=True)
-	for u in (usr or unblock_requests):
+	for u in (usr or unblock_requests.keys()):
 		for c in (chat or chats):
-			m = tele.restrict_chat_member(c, u, p)
+			try:
+				r = tele.restrict_chat_member(c, u, p)
+				if r:
+					debug_group.send_message(
+						text=getDisplayUser(unblock_requests[u]) + 
+							' auto unblocked in ' + getGroupName(tele.get_chat(c)),
+						parse_mode='Markdown',
+						disable_web_page_preview=True)
+			except:
+				pass
 
 @log_on_fail(debug_group)
 def handleGroup(update, context):
@@ -232,9 +243,7 @@ def handleGroup(update, context):
 	msg = update.effective_message
 	if not msg:
 		return
-	print(1)
 	if not msg.chat.id in chats:
-		print(2)
 		chats.add(msg.chat.id)
 		handleAutoUnblock(chat = [msg.chat.id])
 	if shouldDelete(msg):
@@ -252,15 +261,16 @@ def handleGroup(update, context):
 	if msg.text in ['unban', 'w']:  
 		markAction(msg, unban)
 
+@log_on_fail(debug_group)
 def handlePrivate(update, context):
 	global unblock_requests
 	update.message.reply_text(
 		'''For group owner, Add me to groups and promote me as admin, I will do magic for you. 
 
 For group member requesting unblock, your request has recieved.''')
-	usr_id = update.effective_usr.id
-	if usr_id not in unblock_requests:
-		unblock_requests.add(usr_id)
+	usr = update.effective_user
+	if usr.id not in unblock_requests:
+		unblock_requests[usr.id] = usr
 		handleAutoUnblock(usr = [usr_id])
 
 def deleteMsgHandle(update, context):
