@@ -232,7 +232,9 @@ def handleGroup(update, context):
 	msg = update.effective_message
 	if not msg:
 		return
+	print(1)
 	if not msg.chat.id in chats:
+		print(2)
 		chats.add(msg.chat.id)
 		handleAutoUnblock(chat = [msg.chat.id])
 	if shouldDelete(msg):
@@ -253,8 +255,9 @@ def handleGroup(update, context):
 def handlePrivate(update, context):
 	global unblock_requests
 	update.message.reply_text(
-		'''For group owner, Add me to the group and promote me as admin please. 
-		If you are here for requesting unblock, your request has recieved.''')
+		'''For group owner, Add me to groups and promote me as admin, I will do magic for you. 
+
+For group member requesting unblock, your request has recieved.''')
 	usr_id = update.effective_usr.id
 	if usr_id not in unblock_requests:
 		unblock_requests.add(usr_id)
