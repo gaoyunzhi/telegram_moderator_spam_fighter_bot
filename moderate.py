@@ -43,7 +43,7 @@ def needKick(user):
 	name = getDisplayUser(user)
 	return matchKey(name.lower(), KICK_KEYS)
 
-def highRiskUsr(usr):
+def highRiskUsr(user):
 	name = getDisplayUser(user).lower()
 	try:
 		int(user.first_name)
