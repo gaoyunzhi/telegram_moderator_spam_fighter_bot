@@ -163,15 +163,10 @@ def deleteMsg(msg):
 	msg.delete()
 
 def unban(not_so_bad_user):
-	if not_so_bad_user.id in JOIN_TIME:
-		del JOIN_TIME[not_so_bad_user.id]
-		debug_group.send_message(
-			text=getDisplayUser(not_so_bad_user) + ' new user whitelisted.',
-			parse_mode='Markdown')
-	else:
-		debug_group.send_message(
-			text=getDisplayUser(not_so_bad_user) + ' is old user.',
-			parse_mode='Markdown')
+	JOIN_TIME[not_so_bad_user.id] = 0
+	debug_group.send_message(
+		text=getDisplayUser(not_so_bad_user) + ' new user whitelisted.',
+		parse_mode='Markdown')
 	if str(not_so_bad_user.id) not in BLACKLIST:
 		debug_group.send_message(
 			text=getDisplayUser(not_so_bad_user) + ' not banned',
