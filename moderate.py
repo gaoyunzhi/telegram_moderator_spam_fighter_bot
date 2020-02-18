@@ -13,6 +13,7 @@ unblock_requests = {}
 chats = set()
 JOIN_TIME = {}
 NEW_USER_WAIT_TIME = 3600 * 24 * 3
+WHITELIST = set()
 
 with open('CREDENTIALS') as f:
     CREDENTIALS = yaml.load(f, Loader=yaml.FullLoader)
@@ -113,7 +114,8 @@ def isBlockedUser(id):
 
 def shouldDelete(msg):
 	return isBlockedUser(msg.from_user.id) or \
-		(isNewUser(msg) and (isMultiMedia(msg) or containRiskyWord(msg))) 
+		(isNewUser(msg) and (msg.from_user.id not in WHITELIST) and \
+			(isMultiMedia(msg) or containRiskyWord(msg))) 
 
 def getGroupName(chat):
 	if chat.username:
@@ -163,10 +165,15 @@ def deleteMsg(msg):
 	msg.delete()
 
 def unban(not_so_bad_user):
-	JOIN_TIME[not_so_bad_user.id] = 0
-	debug_group.send_message(
-		text=getDisplayUser(not_so_bad_user) + ' new user whitelisted.',
-		parse_mode='Markdown')
+	if not_so_bad_user.id not in WHITELIST:
+		WHITELIST.add(not_so_bad_user.id)
+		debug_group.send_message(
+			text=getDisplayUser(not_so_bad_user) + ' new user whitelisted.',
+			parse_mode='Markdown')
+	else:
+		debug_group.send_message(
+			text=getDisplayUser(not_so_bad_user) + ' already whitelisted.',
+			parse_mode='Markdown')
 	if str(not_so_bad_user.id) not in BLACKLIST:
 		debug_group.send_message(
 			text=getDisplayUser(not_so_bad_user) + ' not banned',
