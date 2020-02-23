@@ -88,9 +88,8 @@ def handleJoin(update, context):
 			continue
 		if highRiskUsr(member):
 			ban(member)
-		if member.id not in JOIN_TIME:
-			JOIN_TIME[msg.chat.id] = JOIN_TIME.get(msg.chat.id, {})
-			JOIN_TIME[msg.chat.id][member.id] = time.time()
+		JOIN_TIME[msg.chat.id] = JOIN_TIME.get(msg.chat.id, {})
+		JOIN_TIME[msg.chat.id][member.id] = time.time()
 
 def isNewUser(msg):
 	if not msg.chat.id in JOIN_TIME:
