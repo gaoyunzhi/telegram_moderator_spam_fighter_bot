@@ -58,10 +58,10 @@ def highRiskUsr(user):
 		return True
 	return matchKey(name, BLACKLIST)
 
-def ban(bad_user):
+def ban(bad_user, mute=False):
 	if bad_user.id == this_bot:
 		return  # don't ban the bot itself :p
-	if str(bad_user.id) in BLACKLIST:
+	if str(bad_user.id) in BLACKLIST and not mute:
 		debug_group.send_message(
 			text=getDisplayUser(bad_user) + ' already banned',
 			parse_mode='Markdown')
@@ -75,19 +75,28 @@ def ban(bad_user):
 @log_on_fail(debug_group)
 def handleJoin(update, context):
 	msg = update.message
+	try:
+		msg.delete()
+	except:
+		pass
 	for member in msg.new_chat_members:
 		if member.id == this_bot:
 			continue
 		if needKick(member):
 			context.bot.kick_chat_member(msg.chat.id, member.id)
-			ban(member)
+			ban(member, True)
 			debug_group.send_message(
 				getDisplayUser(member) + ' kicked from ' + getGroupName(msg.chat),
 				parse_mode='Markdown',
 				disable_web_page_preview=True)
 			continue
 		if highRiskUsr(member):
-			ban(member)
+			ban(member, True)
+			continue
+		debug_group.send_message(
+			getDisplayUser(member) + ' joined ' + getGroupName(msg.chat),
+			parse_mode='Markdown',
+			disable_web_page_preview=True)
 		JOIN_TIME[msg.chat.id] = JOIN_TIME.get(msg.chat.id, {})
 		JOIN_TIME[msg.chat.id][member.id] = time.time()
 
@@ -163,22 +172,26 @@ def deleteMsg(msg):
 		msg.forward(debug_group.id)
 	except:
 		pass
-	msg.delete()
+	try:
+		msg.delete()
+	except:
+		pass
 
-def unban(not_so_bad_user):
+def unban(not_so_bad_user, mute=False):
 	if not_so_bad_user.id not in WHITELIST:
 		WHITELIST.add(not_so_bad_user.id)
 		debug_group.send_message(
 			text=getDisplayUser(not_so_bad_user) + ' new user whitelisted.',
 			parse_mode='Markdown')
-	else:
+	elif not mute:
 		debug_group.send_message(
 			text=getDisplayUser(not_so_bad_user) + ' already whitelisted.',
 			parse_mode='Markdown')
 	if str(not_so_bad_user.id) not in BLACKLIST:
-		debug_group.send_message(
-			text=getDisplayUser(not_so_bad_user) + ' not banned',
-			parse_mode='Markdown')
+		if not mute:
+			debug_group.send_message(
+				text=getDisplayUser(not_so_bad_user) + ' not banned',
+				parse_mode='Markdown')
 		return
 	BLACKLIST.remove(str(not_so_bad_user.id))
 	saveBlacklist()
@@ -186,20 +199,23 @@ def unban(not_so_bad_user):
 		text=getDisplayUser(not_so_bad_user) + ' unbanned',
 		parse_mode='Markdown')
 
-def markAction(msg, action):
+def markAction(msg, action, mute=False):
 	if not msg.reply_to_message:
 		return
 	for item in msg.reply_to_message.entities:
 		if item['type'] == 'text_mention':
-			action(item.user)
+			action(item.user, mute)
 			return
 	if msg.chat_id != debug_group.id:
-		action(msg.reply_to_message.from_user)
+		action(msg.reply_to_message.from_user, mute)
 		r = msg.reply_text('请大家互相理解，友好交流。')
 		r.delete()
-		msg.delete()
+		try:
+			msg.delete()
+		except:
+			pass
 	else:
-		action(msg.reply_to_message.forward_from)
+		action(msg.reply_to_message.forward_from, mute)
 
 @log_on_fail(debug_group)
 def remindIfNecessary(msg):
@@ -252,7 +268,7 @@ def handleGroup(update, context):
 	if shouldDelete(msg):
 		return deleteMsg(msg)
 	if isNewUser(msg) and containRiskyWord(msg):
-		markAction(msg, ban)
+		markAction(msg, ban, True)
 	remindIfNecessary(msg)
 	if msg.from_user.id != BOT_OWNER:
 		return
@@ -282,8 +298,6 @@ def deleteMsgHandle(update, context):
 dp = updater.dispatcher
 dp.add_handler(
 		MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
-dp.add_handler(
-		MessageHandler(Filters.status_update.new_chat_members, deleteMsgHandle), group = 2)
 dp.add_handler(
 		MessageHandler(Filters.status_update.left_chat_member, deleteMsgHandle), group = 2)
 dp.add_handler(MessageHandler(Filters.group, handleGroup), group = 3)
