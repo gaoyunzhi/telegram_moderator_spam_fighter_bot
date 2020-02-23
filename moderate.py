@@ -54,6 +54,8 @@ def highRiskUsr(user):
 	for index, x in enumerate(name):
 		if name[index:index + 3] == x * 3:
 			return True
+	if not user.last_name and not user.username:
+		return True
 	return matchKey(name, BLACKLIST)
 
 def ban(bad_user):
