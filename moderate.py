@@ -119,18 +119,16 @@ def isNewUser(msg):
 def isMultiMedia(msg):
 	return msg.photo or msg.sticker or msg.video
 
+def badText(text):
+	return matchKey(name, KICK_KEYS) or matchKey(name, BLACKLIST)
+
 def containRiskyWord(msg):
-	if not msg.text:
-		return False
-	for b in BLACKLIST:
-		if b.lower() in msg.text.lower():
+	if badText(getDisplayUser(msg.from_user))
+		return True
+	if msg.forward_from:
+		if badText(getDisplayUser(msg.forward_from)):
 			return True
-	if matchKey(msg.text.lower(), KICK_KEYS):
-		return True
-	name = getDisplayUser(msg.from_user)
-	if matchKey(name, KICK_KEYS):
-		return True
-	if matchKey(name, BLACKLIST):
+	if badText(msg.text):
 		return True
 	return False
 
