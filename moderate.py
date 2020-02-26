@@ -13,7 +13,6 @@ unblock_requests = {}
 chats = set()
 JOIN_TIME = {}
 NEW_USER_WAIT_TIME = 3600 * 24 * 3
-WHITELIST = set()
 
 with open('CREDENTIALS') as f:
     CREDENTIALS = yaml.load(f, Loader=yaml.FullLoader)
@@ -33,12 +32,21 @@ with open('BLACKLIST') as f:
 	BLACKLIST = [x.strip() for x in f.readlines()]
 	BLACKLIST = set([x for x in BLACKLIST if x])
 
+try:
+	with open('WHITELIST') as f:
+		WHITELIST = [x.strip() for x in f.readlines()]
+		WHITELIST = set([x for x in WHITELIST if x])
+except:
+	WHITELIST = set()
+
 with open('KICK_KEYS') as f:
     KICK_KEYS = set(yaml.load(f, Loader=yaml.FullLoader))
 
-def saveBlacklist():
+def saveList():
 	with open('BLACKLIST', 'w') as f:
 		f.write('\n'.join(sorted(BLACKLIST)))
+	with open('WHITELIST', 'w') as f:
+		f.write('\n'.join(sorted(WHITELIST)))
 
 def needKick(user):
 	name = getDisplayUser(user)
@@ -67,7 +75,7 @@ def ban(bad_user, mute=False):
 			parse_mode='Markdown')
 		return
 	BLACKLIST.add(str(bad_user.id))
-	saveBlacklist()
+	saveList()
 	debug_group.send_message(
 		text=getDisplayUser(bad_user) + ' banned',
 		parse_mode='Markdown')
@@ -117,15 +125,26 @@ def containRiskyWord(msg):
 	for b in BLACKLIST:
 		if b.lower() in msg.text.lower():
 			return True
+	if matchKey(msg.text.lower(), KICK_KEYS):
+		return True
+	name = getDisplayUser(msg.from_user)
+	if matchKey(name, KICK_KEYS):
+		return True
+	if matchKey(name, BLACKLIST):
+		return True
 	return False
 
-def isBlockedUser(id):
-	return str(id) in BLACKLIST
-
 def shouldDelete(msg):
-	return isBlockedUser(msg.from_user.id) or \
-		(isNewUser(msg) and (msg.from_user.id not in WHITELIST) and \
-			(isMultiMedia(msg) or containRiskyWord(msg))) 
+	usr = str(msg.from_user.id)
+	if usr in BLACKLIST:
+		return True
+	if usr in WHITELIST:
+		return False
+	if containRiskyWord(msg):
+		return True
+	if isNewUser(msg) and isMultiMedia(msg):
+		return True
+	return False
 
 def getGroupName(chat):
 	if chat.username:
@@ -179,7 +198,8 @@ def deleteMsg(msg):
 
 def unban(not_so_bad_user, mute=False):
 	if not_so_bad_user.id not in WHITELIST:
-		WHITELIST.add(not_so_bad_user.id)
+		WHITELIST.add(str(not_so_bad_user.id))
+		saveList()
 		debug_group.send_message(
 			text=getDisplayUser(not_so_bad_user) + ' new user whitelisted.',
 			parse_mode='Markdown')
@@ -194,7 +214,7 @@ def unban(not_so_bad_user, mute=False):
 				parse_mode='Markdown')
 		return
 	BLACKLIST.remove(str(not_so_bad_user.id))
-	saveBlacklist()
+	saveList()
 	debug_group.send_message(
 		text=getDisplayUser(not_so_bad_user) + ' unbanned',
 		parse_mode='Markdown')
