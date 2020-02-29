@@ -67,7 +67,7 @@ def highRiskUsr(user):
 	return matchKey(name, BLACKLIST)
 
 def ban(bad_user, mute=False):
-	if bad_user.id == this_bot:
+	if bad_user.id in [this_bot, BOT_OWNER]:
 		return  # don't ban the bot itself :p
 	if str(bad_user.id) in BLACKLIST and not mute:
 		debug_group.send_message(
