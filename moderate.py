@@ -120,10 +120,10 @@ def isMultiMedia(msg):
 	return msg.photo or msg.sticker or msg.video
 
 def badText(text):
-	return matchKey(name, KICK_KEYS) or matchKey(name, BLACKLIST)
+	return matchKey(text, KICK_KEYS) or matchKey(text, BLACKLIST)
 
 def containRiskyWord(msg):
-	if badText(getDisplayUser(msg.from_user))
+	if badText(getDisplayUser(msg.from_user)):
 		return True
 	if msg.forward_from:
 		if badText(getDisplayUser(msg.forward_from)):
