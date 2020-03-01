@@ -265,6 +265,7 @@ def handleAutoUnblock(usr = None, chat = None):
 		for c in (chat or chats):
 			try:
 				r = tele.restrict_chat_member(c, u, p)
+				print(r)
 				if r:
 					debug_group.send_message(
 						text=getDisplayUser(unblock_requests[u]) + 
