@@ -23,20 +23,6 @@ this_bot = tele.id
 BOT_OWNER = CREDENTIALS['owner']
 db = DB()
 
-def ban(bad_user, mute=False):
-	if bad_user.id in [this_bot, BOT_OWNER]:
-		return  # don't ban the bot itself :p
-	if str(bad_user.id) in BLACKLIST and not mute:
-		debug_group.send_message(
-			text=getDisplayUser(bad_user) + ' already banned',
-			parse_mode='Markdown')
-		return
-	BLACKLIST.add(str(bad_user.id))
-	saveList()
-	debug_group.send_message(
-		text=getDisplayUser(bad_user) + ' banned',
-		parse_mode='Markdown')
-
 @log_on_fail(debug_group)
 def handleJoin(update, context):
 	msg = update.message
@@ -98,7 +84,7 @@ def deleteMsg(msg):
 	except:
 		pass
 
-def unban(not_so_bad_user, mute=False):
+def unban(not_so_bad_user):
 	if not_so_bad_user.id not in WHITELIST:
 		WHITELIST.add(str(not_so_bad_user.id))
 		saveList()
@@ -121,20 +107,46 @@ def unban(not_so_bad_user, mute=False):
 		text=getDisplayUser(not_so_bad_user) + ' unbanned',
 		parse_mode='Markdown')
 
-def markAction(msg, action):
+def mute(bad_user):
+	if bad_user.id in [this_bot, BOT_OWNER]:
+		return  # don't ban the bot itself :p
+	if str(bad_user.id) in db.MUTELIST:
+		debug_group.send_message(
+			text=getDisplayUser(bad_user) + ' already banned',
+			parse_mode='Markdown')
+		return
+	BLACKLIST.add(str(bad_user.id))
+	saveList()
+	debug_group.send_message(
+		text=getDisplayUser(bad_user) + ' banned',
+		parse_mode='Markdown')
+
+def doAction(usr, action):
+	r = action(usr)
+	if r:
+		db.save()
+		debug_group.send_message(
+			text=getDisplayUser(usr) + ': ' + action.__name__,
+			parse_mode='Markdown')
+	else:
+		debug_group.send_message(
+			text=getDisplayUser(usr) + ': stay ' + action.__name__,
+			parse_mode='Markdown')
+
+def markAction(msg, action)
 	if not msg.reply_to_message:
 		return
 	for item in msg.reply_to_message.entities:
 		if item['type'] == 'text_mention':
-			action(item.user, mute)
+			doAction(item.user, action)
 			return
 	if msg.chat_id != debug_group.id:
-		action(msg.reply_to_message.from_user)
+		doAction(msg.reply_to_message.from_user, action)
 		r = msg.reply_text('-')
 		r.delete()
 		msg.delete()
-	else:
-		action(msg.reply_to_message.forward_from)
+		return 
+	doAction(msg.reply_to_message.forward_from, action)
 
 @log_on_fail(debug_group)
 def handleAutoUnblock(usr = None, chat = None):

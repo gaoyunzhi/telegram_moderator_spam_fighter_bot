@@ -15,6 +15,10 @@ class DB(object):
             content = [x.strip() for x in f.readlines()]
             setattr(self, filename, set([x for x in content if x]))
 
+    def saveFile(self, filename):
+        with open('db/' + filename, 'w') as f:
+            f.write('\n'.join(sorted(getattr(self, filename))))
+
     def __init__(self):
         self.readFile('KICKLIST')
         self.readFile('MUTELIST')
@@ -51,8 +55,7 @@ class DB(object):
             return False
         return True
 
-    def saveList():
-        with open('BLACKLIST', 'w') as f:
-            f.write('\n'.join(sorted(BLACKLIST)))
-        with open('WHITELIST', 'w') as f:
-            f.write('\n'.join(sorted(WHITELIST)))
+    def save():
+        self.saveFile('KICKLIST')
+        self.saveFile('MUTELIST')
+        self.saveFile('WHITELIST')
