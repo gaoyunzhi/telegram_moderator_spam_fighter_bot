@@ -63,9 +63,10 @@ class DB(object):
         return True
 
     def record(self, mlist, target):
+        tid = str(target.id)
         for l in self.lists:
             if l == mlist:
-                getattr(self, l).add(target.id)
+                getattr(self, l).add(tid)
             else:
-                getattr(self, l).discard(target.id)
+                getattr(self, l).discard(tid)
             self.saveFile(l)
