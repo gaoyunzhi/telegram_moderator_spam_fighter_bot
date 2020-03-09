@@ -7,7 +7,12 @@ def highRiskUsr(user):
         return True
     except:
         pass
-    return not user.last_name and not user.username
+    if not user.username:
+        if user.last_name:
+            return True
+        if user.last_name in user.first_name or user.first_name in user.last_name:
+            return True
+    return False
 
 class DB(object):
     lists = ['KICKLIST', 'MUTELIST', 'WHITELIST']
@@ -36,7 +41,7 @@ class DB(object):
         return self.badText(getDisplayUser(user))
 
     def highRiskText(self, text):
-        if self.badText(text):
+        if not test or self.badText(text):
             return True
         for index, x in enumerate(text):
             if text[index:index + 3] == x * 3:
