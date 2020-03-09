@@ -8,7 +8,8 @@ def highRiskUsr(user):
     except:
         pass
     if user.username:
-        if user.last_name in user.first_name or user.first_name in user.last_name:
+        if (user.last_name in user.first_name) or \
+            (user.first_name in user.last_name):
             return True
     elif not user.username:
         return True
