@@ -23,25 +23,7 @@ BOT_OWNER = CREDENTIALS['owner']
 
 quotes = ["'", '"', '‘', '“', '【']
 
-with open('BLACKLIST') as f:
-	BLACKLIST = [x.strip() for x in f.readlines()]
-	BLACKLIST = set([x for x in BLACKLIST if x])
 
-try:
-	with open('WHITELIST') as f:
-		WHITELIST = [x.strip() for x in f.readlines()]
-		WHITELIST = set([x for x in WHITELIST if x])
-except:
-	WHITELIST = set()
-
-with open('KICK_KEYS') as f:
-    KICK_KEYS = set(yaml.load(f, Loader=yaml.FullLoader))
-
-def saveList():
-	with open('BLACKLIST', 'w') as f:
-		f.write('\n'.join(sorted(BLACKLIST)))
-	with open('WHITELIST', 'w') as f:
-		f.write('\n'.join(sorted(WHITELIST)))
 
 def needKick(user):
 	name = getDisplayUser(user)
