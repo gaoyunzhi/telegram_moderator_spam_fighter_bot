@@ -10,7 +10,7 @@ def highRiskUsr(user):
     return not user.last_name and not user.username
 
 class DB(object):
-    self.lists = ['KICKLIST', 'MUTELIST', 'WHITELIST']
+    lists = ['KICKLIST', 'MUTELIST', 'WHITELIST']
 
     def readFile(self, filename):
         with open('db/' + filename) as f:

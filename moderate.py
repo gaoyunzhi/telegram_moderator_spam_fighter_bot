@@ -26,7 +26,7 @@ def handleJoin(update, context):
 	msg = update.message
 	kicked = False
 	for member in msg.new_chat_members:
-		if db.needKick(member):
+		if db.shouldKick(member):
 			tele.kick_chat_member(msg.chat.id, member.id)
 			kicked = True
 	if not kicked:
@@ -42,7 +42,7 @@ def getAdminActionTarget(msg):
 		return msg.reply_to_message.from_user
 	return msg.reply_to_message.forward_from
 
-def adminAction(db_action, msg, display_action)
+def adminAction(db_action, msg, display_action):
 	target = getAdminActionTarget(msg)
 	if not target or not target.id:
 		return
@@ -73,12 +73,12 @@ def handleAutoUnblock(usr = None, chat = None):
 			except:
 				pass
 
-def handleGroupInternal(msg)
+def handleGroupInternal(msg):
 	global chats
 	if not msg.chat.id in chats:
 		chats.add(msg.chat.id)
 		handleAutoUnblock(chat = [msg.chat.id])
-	if db.needKick(msg.from_user):
+	if db.shouldKick(msg.from_user):
 		tele.kick_chat_member(msg.chat.id, member.id)
 	if db.shouldDelete(msg):
 		recordDelete(msg, debug_group, tele)
