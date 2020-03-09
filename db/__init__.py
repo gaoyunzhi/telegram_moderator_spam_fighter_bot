@@ -42,7 +42,7 @@ class DB(object):
         return self.badText(getDisplayUser(user))
 
     def highRiskText(self, text):
-        if not test or self.badText(text):
+        if not text or self.badText(text):
             return True
         for index, x in enumerate(text):
             if text[index:index + 3] == x * 3:
