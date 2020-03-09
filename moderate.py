@@ -124,11 +124,11 @@ def deleteMsgHandle(update, context):
 dp = updater.dispatcher
 dp.add_handler(
 		MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
-dp.add_handler(MessageHandler(Filters.status_update.left_chat_member or \
+dp.add_handler(MessageHandler(Filters.status_update.left_chat_member | \
 		Filters.status_update.new_chat_members, deleteMsgHandle), group = 2)
-dp.add_handler(MessageHandler(Filters.group and \
-		(not Filters.status_update.left_chat_member) and \
-		(not Filters.status_update.new_chat_members), handleGroup), group = 3)
+dp.add_handler(MessageHandler(Filters.group & \
+		(~ Filters.status_update.left_chat_member) & \
+		(~ Filters.status_update.new_chat_members), handleGroup), group = 3)
 dp.add_handler(MessageHandler(Filters.private, handlePrivate), group = 4)
 
 updater.start_polling()
