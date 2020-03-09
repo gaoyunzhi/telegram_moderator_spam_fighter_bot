@@ -30,6 +30,7 @@ def handleJoin(update, context):
 			tele.kick_chat_member(msg.chat.id, member.id)
 			kicked = True
 	if not kicked:
+		autoDestroy(msg)
 		autoDestroy(msg.reply_text('欢迎新朋友！新朋友请自我介绍~'))
 
 def getAdminActionTarget(msg):
@@ -122,10 +123,8 @@ def deleteMsgHandle(update, context):
 	update.message.delete()
 
 dp = updater.dispatcher
-dp.add_handler(
-		MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
-dp.add_handler(MessageHandler(Filters.status_update.left_chat_member | \
-		Filters.status_update.new_chat_members, deleteMsgHandle), group = 2)
+dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
+dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, deleteMsgHandle), group = 2)
 dp.add_handler(MessageHandler(Filters.group & \
 		(~ Filters.status_update.left_chat_member) & \
 		(~ Filters.status_update.new_chat_members), handleGroup), group = 3)
