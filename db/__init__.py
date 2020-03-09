@@ -7,11 +7,11 @@ def highRiskUsr(user):
         return True
     except:
         pass
-    if not user.username:
-        if user.last_name:
-            return True
+    if user.username:
         if user.last_name in user.first_name or user.first_name in user.last_name:
             return True
+    elif not user.username:
+        return True
     return False
 
 class DB(object):
