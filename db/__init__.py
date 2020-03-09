@@ -66,6 +66,6 @@ class DB(object):
         for l in self.lists:
             if l == mlist:
                 getattr(self, l).add(target.id)
-                continue
-            getattr(self, l).discard(target.id)
+            else:
+                getattr(self, l).discard(target.id)
             self.saveFile(l)
