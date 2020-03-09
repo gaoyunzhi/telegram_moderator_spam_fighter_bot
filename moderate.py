@@ -8,6 +8,7 @@ import os
 import traceback as tb
 from telegram_util import getDisplayUser, log_on_fail, getTmpFile, autoDestroy, matchKey
 import yaml
+from db import DB
 
 unblock_requests = {}
 chats = set()
@@ -20,28 +21,7 @@ tele = updater.bot
 debug_group = tele.get_chat(-1001198682178)
 this_bot = tele.id
 BOT_OWNER = CREDENTIALS['owner']
-
-quotes = ["'", '"', '‘', '“', '【']
-
-
-
-def needKick(user):
-	name = getDisplayUser(user)
-	return matchKey(name.lower(), KICK_KEYS)
-
-def highRiskUsr(user):
-	name = getDisplayUser(user).lower()
-	try:
-		int(user.first_name)
-		return True
-	except:
-		pass
-	for index, x in enumerate(name):
-		if name[index:index + 3] == x * 3:
-			return True
-	if not user.last_name and not user.username:
-		return True
-	return matchKey(name, BLACKLIST)
+db = DB()
 
 def ban(bad_user, mute=False):
 	if bad_user.id in [this_bot, BOT_OWNER]:
@@ -60,39 +40,13 @@ def ban(bad_user, mute=False):
 @log_on_fail(debug_group)
 def handleJoin(update, context):
 	msg = update.message
+	kicked = False
 	for member in msg.new_chat_members:
-		if member.id == this_bot:
-			continue
-		if needKick(member):
-			context.bot.kick_chat_member(msg.chat.id, member.id)
-
-def isMultiMedia(msg):
-	return msg.photo or msg.sticker or msg.video
-
-def badText(text):
-	return matchKey(text, KICK_KEYS) or matchKey(text, BLACKLIST)
-
-def containRiskyWord(msg):
-	if badText(getDisplayUser(msg.from_user)):
-		return True
-	if msg.forward_from:
-		if badText(getDisplayUser(msg.forward_from)):
-			return True
-	if badText(msg.text):
-		return True
-	return False
-
-def shouldDelete(msg):
-	usr = str(msg.from_user.id)
-	if usr in BLACKLIST:
-		return True
-	if usr in WHITELIST:
-		return False
-	if containRiskyWord(msg):
-		return True
-	if isNewUser(msg) and isMultiMedia(msg):
-		return True
-	return False
+		if db.needKick(member):
+			tele.kick_chat_member(msg.chat.id, member.id)
+			kicked = True
+	if not kicked:
+		autoDestroy(msg.reply_text('欢迎新朋友！新朋友请自我介绍~'))
 
 def getGroupName(chat):
 	if chat.username:
@@ -128,6 +82,10 @@ def getActionUsers(msg):
 
 @log_on_fail(debug_group)
 def deleteMsg(msg):
+	try:
+		msg.delete()
+	except:
+		return
 	action_users = getActionUsers(msg)
 	names = ', '.join([getDisplayUser(x) for x in action_users])
 	debug_group.send_message(
@@ -137,10 +95,6 @@ def deleteMsg(msg):
 		disable_web_page_preview=True)
 	try:
 		msg.forward(debug_group.id)
-	except:
-		pass
-	try:
-		msg.delete()
 	except:
 		pass
 
@@ -167,7 +121,7 @@ def unban(not_so_bad_user, mute=False):
 		text=getDisplayUser(not_so_bad_user) + ' unbanned',
 		parse_mode='Markdown')
 
-def markAction(msg, action, mute=False):
+def markAction(msg, action):
 	if not msg.reply_to_message:
 		return
 	for item in msg.reply_to_message.entities:
@@ -175,15 +129,12 @@ def markAction(msg, action, mute=False):
 			action(item.user, mute)
 			return
 	if msg.chat_id != debug_group.id:
-		action(msg.reply_to_message.from_user, mute)
-		r = msg.reply_text('请大家互相理解，友好交流。')
+		action(msg.reply_to_message.from_user)
+		r = msg.reply_text('-')
 		r.delete()
-		try:
-			msg.delete()
-		except:
-			pass
+		msg.delete()
 	else:
-		action(msg.reply_to_message.forward_from, mute)
+		action(msg.reply_to_message.forward_from)
 
 @log_on_fail(debug_group)
 def handleAutoUnblock(usr = None, chat = None):
@@ -198,39 +149,36 @@ def handleAutoUnblock(usr = None, chat = None):
 		for c in (chat or chats):
 			try:
 				r = tele.restrict_chat_member(c, u, p)
-				print(r)
-				if r:
-					debug_group.send_message(
-						text=getDisplayUser(unblock_requests[u]) + 
-							' auto unblocked in ' + getGroupName(tele.get_chat(c)),
-						parse_mode='Markdown',
-						disable_web_page_preview=True)
 			except:
 				pass
 
 @log_on_fail(debug_group)
 def handleGroup(update, context):
-	global chats
 	msg = update.effective_message
 	if not msg:
 		return
-	if not msg.chat.id in chats:
-		chats.add(msg.chat.id)
-		handleAutoUnblock(chat = [msg.chat.id])
-	if shouldDelete(msg):
-		return deleteMsg(msg)
-	if isNewUser(msg) and containRiskyWord(msg):
-		markAction(msg, ban, True)
-	remindIfNecessary(msg)
+
+	if msg.chat_id != debug_group.id:
+		global chats
+		if not msg.chat.id in chats:
+			chats.add(msg.chat.id)
+			handleAutoUnblock(chat = [msg.chat.id])
+		if db.needKick(msg.from_user):
+			tele.kick_chat_member(msg.chat.id, member.id)
+		if db.shouldDelete(msg):
+			return deleteMsg(msg)
+
 	if msg.from_user.id != BOT_OWNER:
 		return
-	if msg.text in ['spam', 'ban', 'b']:
-		markAction(msg, ban)
-	if msg.text == 'spam':
-		context.bot.delete_message(
-			chat_id=msg.chat_id, message_id=msg.reply_to_message.message_id)
-	if msg.text in ['unban', 'w']:  
-		markAction(msg, unban)
+	# TODO: check do I need to mute anyone? Why not just kick them?
+	if msg.text in ['spam', 'ban', 'b', 'x']:
+		markAction(msg, mute)
+	if msg.text in ['kick', 'k']:
+		markAction(msg, kick)
+	if msg.text in ['w']:  
+		markAction(msg, white)
+	if msg.text in ['uw', 'unwhitelist']:  
+		markAction(msg, unwhite)
 
 @log_on_fail(debug_group)
 def handlePrivate(update, context):
@@ -245,7 +193,7 @@ For group member requesting unblock, your request has recieved.''')
 		handleAutoUnblock(usr = [usr.id])
 
 def deleteMsgHandle(update, context):
-	deleteMsg(update.message)
+	update.message.delete()
 
 dp = updater.dispatcher
 dp.add_handler(
