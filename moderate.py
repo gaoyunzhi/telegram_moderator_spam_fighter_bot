@@ -3,12 +3,10 @@
 
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram import ChatPermissions
-import time
-import os
-import traceback as tb
-from telegram_util import getDisplayUser, log_on_fail, getTmpFile, autoDestroy, matchKey
+from telegram_util import getDisplayUser, log_on_fail, autoDestroy
 import yaml
 from db import DB
+from record_delete import recordDelete
 
 unblock_requests = {}
 chats = set()
@@ -33,56 +31,6 @@ def handleJoin(update, context):
 			kicked = True
 	if not kicked:
 		autoDestroy(msg.reply_text('欢迎新朋友！新朋友请自我介绍~'))
-
-def getGroupName(chat):
-	if chat.username:
-		link = 't.me/' + chat.username 
-	else:
-		try:
-			link = tele.export_chat_invite_link(chat.id)
-		except:
-			link = ''
-	return '[%s](%s)' % (chat.title, link)
-
-def getMsgType(msg):
-	if msg.photo:
-		return 'sent photo in'
-	if msg.video:
-		return 'sent video in'
-	if msg.sticker:
-		return 'sent sticker in'
-	if msg.text:
-		return 'texted'
-	if msg.left_chat_member:
-		return 'left'
-	if msg.new_chat_members:
-		return 'joined'
-	return 'did some action'
-
-def getActionUsers(msg):
-	if msg.new_chat_members:
-		return msg.new_chat_members
-	if msg.left_chat_member:
-		return [msg.left_chat_member]
-	return [msg.from_user]
-
-@log_on_fail(debug_group)
-def deleteMsg(msg):
-	try:
-		msg.delete()
-	except:
-		return
-	action_users = getActionUsers(msg)
-	names = ', '.join([getDisplayUser(x) for x in action_users])
-	debug_group.send_message(
-		text=names + ' ' + getMsgType(msg) + 
-		' ' + getGroupName(msg.chat),
-		parse_mode='Markdown',
-		disable_web_page_preview=True)
-	try:
-		msg.forward(debug_group.id)
-	except:
-		pass
 
 def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
@@ -131,7 +79,7 @@ def handleGroupInternal(msg)
 	if db.needKick(msg.from_user):
 		tele.kick_chat_member(msg.chat.id, member.id)
 	if db.shouldDelete(msg):
-		deleteMsg(msg)
+		recordDelete(msg, debug_group, tele)
 
 def handleAdmin(msg):
 	# TODO: check do I need to mute anyone? Why not just kick them?
