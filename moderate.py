@@ -11,8 +11,6 @@ import yaml
 
 unblock_requests = {}
 chats = set()
-JOIN_TIME = {}
-NEW_USER_WAIT_TIME = 3600 * 24 * 3
 
 with open('CREDENTIALS') as f:
     CREDENTIALS = yaml.load(f, Loader=yaml.FullLoader)
@@ -24,9 +22,6 @@ this_bot = tele.id
 BOT_OWNER = CREDENTIALS['owner']
 
 quotes = ["'", '"', '‘', '“', '【']
-
-with open('BETTER_AVOID_WORDS') as f:
-    better_avoid_words = set(yaml.load(f, Loader=yaml.FullLoader))
 
 with open('BLACKLIST') as f:
 	BLACKLIST = [x.strip() for x in f.readlines()]
@@ -83,38 +78,11 @@ def ban(bad_user, mute=False):
 @log_on_fail(debug_group)
 def handleJoin(update, context):
 	msg = update.message
-	try:
-		msg.delete()
-	except:
-		pass
 	for member in msg.new_chat_members:
 		if member.id == this_bot:
 			continue
 		if needKick(member):
 			context.bot.kick_chat_member(msg.chat.id, member.id)
-			ban(member, True)
-			debug_group.send_message(
-				getDisplayUser(member) + ' kicked from ' + getGroupName(msg.chat),
-				parse_mode='Markdown',
-				disable_web_page_preview=True)
-			continue
-		if highRiskUsr(member):
-			ban(member, True)
-			continue
-		debug_group.send_message(
-			getDisplayUser(member) + ' joined ' + getGroupName(msg.chat),
-			parse_mode='Markdown',
-			disable_web_page_preview=True)
-		JOIN_TIME[msg.chat.id] = JOIN_TIME.get(msg.chat.id, {})
-		JOIN_TIME[msg.chat.id][member.id] = time.time()
-
-def isNewUser(msg):
-	if not msg.chat.id in JOIN_TIME:
-		return False
-	if not msg.from_user.id in JOIN_TIME[msg.chat.id]:
-		return False
-	return JOIN_TIME[msg.chat.id][
-			msg.from_user.id] > time.time() - NEW_USER_WAIT_TIME
 
 def isMultiMedia(msg):
 	return msg.photo or msg.sticker or msg.video
@@ -236,23 +204,6 @@ def markAction(msg, action, mute=False):
 		action(msg.reply_to_message.forward_from, mute)
 
 @log_on_fail(debug_group)
-def remindIfNecessary(msg):
-	if not msg.text:
-		return
-	if matchKey(msg.text, better_avoid_words) and not matchKey(msg.text, quotes):
-		reminder = '建议避免使用带有强烈主观判断的词哦，比如：' + ', '.join(better_avoid_words) + \
-			'。 谢谢啦！'
-		autoDestroy(msg.reply_text(reminder), 10)
-	emotional_words = ['意淫', '凭什么']
-	if matchKey(msg.text, emotional_words):
-		reminder = '反问，反讽不利于友好交流哦，建议您换成大家更容易理解的表达哦。谢谢啦！'
-		autoDestroy(msg.reply_text(reminder), 10)
-	attacking_words = ['太low']
-	if matchKey(msg.text, attacking_words):
-		reminder = '请友好交流，争取互相理解。谢谢啦！'
-		autoDestroy(msg.reply_text(reminder), 10)
-
-@log_on_fail(debug_group)
 def handleAutoUnblock(usr = None, chat = None):
 	global unblock_requests
 	global chats
@@ -318,7 +269,7 @@ dp = updater.dispatcher
 dp.add_handler(
 		MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
 dp.add_handler(
-		MessageHandler(Filters.status_update.left_chat_member, deleteMsgHandle), group = 2)
+		MessageHandler(Filters.status_update.left_chat_member or Filters.status_update.new_chat_members, deleteMsgHandle), group = 2)
 dp.add_handler(MessageHandler(Filters.group, handleGroup), group = 3)
 dp.add_handler(MessageHandler(Filters.private, handlePrivate), group = 4)
 
