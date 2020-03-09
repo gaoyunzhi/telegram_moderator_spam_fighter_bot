@@ -84,69 +84,28 @@ def deleteMsg(msg):
 	except:
 		pass
 
-def unban(not_so_bad_user):
-	if not_so_bad_user.id not in WHITELIST:
-		WHITELIST.add(str(not_so_bad_user.id))
-		saveList()
-		debug_group.send_message(
-			text=getDisplayUser(not_so_bad_user) + ' new user whitelisted.',
-			parse_mode='Markdown')
-	elif not mute:
-		debug_group.send_message(
-			text=getDisplayUser(not_so_bad_user) + ' already whitelisted.',
-			parse_mode='Markdown')
-	if str(not_so_bad_user.id) not in BLACKLIST:
-		if not mute:
-			debug_group.send_message(
-				text=getDisplayUser(not_so_bad_user) + ' not banned',
-				parse_mode='Markdown')
-		return
-	BLACKLIST.remove(str(not_so_bad_user.id))
-	saveList()
-	debug_group.send_message(
-		text=getDisplayUser(not_so_bad_user) + ' unbanned',
-		parse_mode='Markdown')
-
-def mute(bad_user):
-	if bad_user.id in [this_bot, BOT_OWNER]:
-		return  # don't ban the bot itself :p
-	if str(bad_user.id) in db.MUTELIST:
-		debug_group.send_message(
-			text=getDisplayUser(bad_user) + ' already banned',
-			parse_mode='Markdown')
-		return
-	BLACKLIST.add(str(bad_user.id))
-	saveList()
-	debug_group.send_message(
-		text=getDisplayUser(bad_user) + ' banned',
-		parse_mode='Markdown')
-
-def doAction(usr, action):
-	r = action(usr)
-	if r:
-		db.save()
-		debug_group.send_message(
-			text=getDisplayUser(usr) + ': ' + action.__name__,
-			parse_mode='Markdown')
-	else:
-		debug_group.send_message(
-			text=getDisplayUser(usr) + ': stay ' + action.__name__,
-			parse_mode='Markdown')
-
-def markAction(msg, action)
+def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
 		return
 	for item in msg.reply_to_message.entities:
 		if item['type'] == 'text_mention':
-			doAction(item.user, action)
-			return
+			return item.user
 	if msg.chat_id != debug_group.id:
-		doAction(msg.reply_to_message.from_user, action)
+		return msg.reply_to_message.from_user
+	return msg.reply_to_message.forward_from
+
+def adminAction(db_action, msg, display_action)
+	target = getAdminActionTarget(msg)
+	if not target or not target.id:
+		return
+	db.record(db_action, target)
+	if msg.chat_id != debug_group.id:
 		r = msg.reply_text('-')
 		r.delete()
 		msg.delete()
-		return 
-	doAction(msg.reply_to_message.forward_from, action)
+	debug_group.send_message(
+		text=getDisplayUser(target) + ': ' + display_action,
+		parse_mode='Markdown')
 
 @log_on_fail(debug_group)
 def handleAutoUnblock(usr = None, chat = None):
@@ -164,6 +123,27 @@ def handleAutoUnblock(usr = None, chat = None):
 			except:
 				pass
 
+def handleGroupInternal(msg)
+	global chats
+	if not msg.chat.id in chats:
+		chats.add(msg.chat.id)
+		handleAutoUnblock(chat = [msg.chat.id])
+	if db.needKick(msg.from_user):
+		tele.kick_chat_member(msg.chat.id, member.id)
+	if db.shouldDelete(msg):
+		deleteMsg(msg)
+
+def handleAdmin(msg):
+	# TODO: check do I need to mute anyone? Why not just kick them?
+	if msg.text in ['mute', 'm']:
+		adminAction('MUTELIST', msg, 'mute')
+	if msg.text in ['kick', 'k']:
+		adminAction('KICKLIST', msg, 'kick')
+	if msg.text in ['white', 'w']:  
+		adminAction('WHITELIST', msg, 'whitelist')
+	if msg.text in ['reset', 'r']:  
+		adminAction(None, msg, 'reset')
+
 @log_on_fail(debug_group)
 def handleGroup(update, context):
 	msg = update.effective_message
@@ -171,26 +151,10 @@ def handleGroup(update, context):
 		return
 
 	if msg.chat_id != debug_group.id:
-		global chats
-		if not msg.chat.id in chats:
-			chats.add(msg.chat.id)
-			handleAutoUnblock(chat = [msg.chat.id])
-		if db.needKick(msg.from_user):
-			tele.kick_chat_member(msg.chat.id, member.id)
-		if db.shouldDelete(msg):
-			return deleteMsg(msg)
+		handleGroupInternal(msg)
 
-	if msg.from_user.id != BOT_OWNER:
-		return
-	# TODO: check do I need to mute anyone? Why not just kick them?
-	if msg.text in ['spam', 'ban', 'b', 'x']:
-		markAction(msg, mute)
-	if msg.text in ['kick', 'k']:
-		markAction(msg, kick)
-	if msg.text in ['w']:  
-		markAction(msg, white)
-	if msg.text in ['uw', 'unwhitelist']:  
-		markAction(msg, unwhite)
+	if msg.from_user.id == BOT_OWNER:
+		handleAdmin(msg)
 
 @log_on_fail(debug_group)
 def handlePrivate(update, context):

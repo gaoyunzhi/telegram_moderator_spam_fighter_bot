@@ -10,6 +10,8 @@ def highRiskUsr(user):
     return not user.last_name and not user.username
 
 class DB(object):
+    self.lists = ['KICKLIST', 'MUTELIST', 'WHITELIST']
+
     def readFile(self, filename):
         with open('db/' + filename) as f:
             content = [x.strip() for x in f.readlines()]
@@ -20,10 +22,9 @@ class DB(object):
             f.write('\n'.join(sorted(getattr(self, filename))))
 
     def __init__(self):
-        self.readFile('KICKLIST')
-        self.readFile('MUTELIST')
+        for l in self.lists:
+            self.readFile(l)
         self.readFile('NAME_BLACKLIST')
-        self.readFile('WHITELIST')
 
     def badText(self, text):
         if matchKey(text, self.WHITELIST):
@@ -55,7 +56,10 @@ class DB(object):
             return False
         return True
 
-    def save():
-        self.saveFile('KICKLIST')
-        self.saveFile('MUTELIST')
-        self.saveFile('WHITELIST')
+    def record(self, mlist, target):
+        for l in self.lists:
+            if l == mlist:
+                getattr(self, l).add(target.id)
+                continue
+            getattr(self, l).discard(target.id)
+            self.saveFile(l)
