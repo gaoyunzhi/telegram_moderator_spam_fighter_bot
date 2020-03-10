@@ -62,6 +62,12 @@ class DB(object):
             return False
         return True
 
+    def getPermission(self, target):
+        tid = str(target.id)
+        for l in self.lists:
+            if tid in getattr(self, l):
+                return l[0].lower()
+
     def record(self, mlist, target):
         tid = str(target.id)
         for l in self.lists:

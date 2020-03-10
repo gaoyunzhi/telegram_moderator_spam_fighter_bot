@@ -21,13 +21,16 @@ def getMsgType(msg):
 		return 'texted'
 	return 'did some action'
 
-def recordDelete(msg, debug_group, tele):
+def recordDelete(msg, debug_group, tele, db):
 	try:
 		msg.delete()
 	except:
 		return
+	p = db.getPermission(msg.from_user)
+	if p:
+		p = ' (' + p + ')'
 	debug_group.send_message(
-		text=getDisplayUser(msg.from_user) + ' ' + getMsgType(msg) + 
-		' ' + getGroupName(msg.chat, tele),
+		text='%s %s %s' % (getDisplayUser(msg.from_user) + p, 
+			getMsgType(msg), getGroupName(msg.chat, tele))
 		parse_mode='Markdown',
 		disable_web_page_preview=True)
