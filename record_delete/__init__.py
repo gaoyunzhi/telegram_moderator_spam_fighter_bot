@@ -1,3 +1,5 @@
+from telegram_util import getDisplayUser
+
 def getGroupName(chat, tele):
 	if chat.username:
 		link = 't.me/' + chat.username 
