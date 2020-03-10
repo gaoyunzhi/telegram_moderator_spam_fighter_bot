@@ -27,11 +27,14 @@ def handleJoin(update, context):
 	kicked = False
 	for member in msg.new_chat_members:
 		if db.shouldKick(member):
-			tele.kick_chat_member(msg.chat.id, member.id)
-			kicked = True
+			try:
+				tele.kick_chat_member(msg.chat.id, member.id)
+				kicked = True
+			except:
+				pass
 	if not kicked:
-		autoDestroy(msg)
-		autoDestroy(msg.reply_text('欢迎新朋友！新朋友请自我介绍~'))
+		autoDestroy(msg, 5)
+		autoDestroy(msg.reply_text('欢迎新朋友！新朋友请自我介绍~'), 5)
 
 def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
