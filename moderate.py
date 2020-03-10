@@ -83,7 +83,7 @@ def handleGroupInternal(msg):
 		chats.add(msg.chat.id)
 		handleAutoUnblock(chat = [msg.chat.id])
 	if db.shouldKick(msg.from_user):
-		tele.kick_chat_member(msg.chat.id, member.id)
+		tele.kick_chat_member(msg.chat.id, msg.from_user.id)
 	if db.shouldDelete(msg):
 		recordDelete(msg, debug_group, tele)
 
