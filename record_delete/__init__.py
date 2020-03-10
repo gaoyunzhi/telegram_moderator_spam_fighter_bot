@@ -31,7 +31,3 @@ def recordDelete(msg, debug_group, tele):
 		' ' + getGroupName(msg.chat, tele),
 		parse_mode='Markdown',
 		disable_web_page_preview=True)
-	try:
-		msg.forward(debug_group.id)
-	except:
-		pass
