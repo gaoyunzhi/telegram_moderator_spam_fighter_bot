@@ -28,8 +28,10 @@ def recordDelete(msg, debug_group, tele, p):
 		return
 	if p:
 		p = ' (' + p + ')'
-	debug_group.send_message(
+	r = debug_group.send_message(
 		text='%s %s %s' % (getDisplayUser(msg.from_user) + p, 
 			getMsgType(msg), getGroupName(msg.chat, tele))
 		parse_mode='Markdown',
 		disable_web_page_preview=True)
+	if not r.entities or len(r.entities) != 2:
+		r.delete() # not actionable
