@@ -30,6 +30,8 @@ def recordDelete(msg, debug_group, tele, p):
 		return
 	if p:
 		p = ' (' + p + ')'
+	else:
+		p = ''
 	r = debug_group.send_message(
 		text='%s %s %s' % (getDisplayUser(msg.from_user) + p, 
 			getMsgType(msg), getGroupName(msg.chat, tele)),
