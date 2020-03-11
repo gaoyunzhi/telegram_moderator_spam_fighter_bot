@@ -48,19 +48,29 @@ class DB(object):
             if text[index:index + 3] == x * 3:
                 return True
 
+    def shouldDeleteWithoutNotification(self, msg):
+        name = getDisplayUser(msg.from_user)
+        if matchKey(name, self.WHITELIST):
+            return False
+        if matchKey(name, self.MUTELIST):
+            return True
+        if msg.text and len(msg.text) < 6:
+            return True
+        return False
+
     def shouldDelete(self, msg):
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.WHITELIST):
             return False
-        if matchKey(name, self.MUTELIST) or highRiskUsr(msg.from_user):
+        if highRiskUsr(msg.from_user):
+            return True
+        if not msg.text:
             return True
         if self.highRiskText(msg.text) or self.highRiskText(name):
             return True
         if msg.forward_from or msg.photo or msg.sticker or msg.video:
             return True
-        if msg.text:
-            return False
-        return True
+        return False
 
     def getPermission(self, target):
         tid = str(target.id)

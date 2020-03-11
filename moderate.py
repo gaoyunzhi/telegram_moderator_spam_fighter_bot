@@ -84,8 +84,13 @@ def handleGroupInternal(msg):
 		handleAutoUnblock(chat = [msg.chat.id])
 	if db.shouldKick(msg.from_user):
 		tele.kick_chat_member(msg.chat.id, msg.from_user.id)
+		msg.delete()
+		return
+	if db.shouldDeleteWithoutNotification(msg):
+		msg.delete()
+		return
 	if db.shouldDelete(msg):
-		recordDelete(msg, debug_group, tele, db)
+		recordDelete(msg, debug_group, tele, db.getPermission(msg.from_user))
 
 def handleAdmin(msg):
 	# TODO: check do I need to mute anyone? Why not just kick them?
