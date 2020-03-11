@@ -19,6 +19,8 @@ def getMsgType(msg):
 		return 'sent sticker in'
 	if msg.text:
 		return 'texted'
+	if msg.document:
+		return 'send document in'
 	return 'did some action'
 
 def recordDelete(msg, debug_group, tele, p):
