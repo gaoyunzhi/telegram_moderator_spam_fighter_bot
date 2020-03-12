@@ -28,6 +28,7 @@ def handleJoin(update, context):
 	for member in msg.new_chat_members:
 		if db.shouldKick(member):
 			try:
+				msg.delete()
 				tele.kick_chat_member(msg.chat.id, member.id)
 				kicked = True
 			except:
