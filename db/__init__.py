@@ -52,7 +52,7 @@ class DB(object):
                 return True
 
     def shouldLog(self, msg):
-        if not replySender(msg) and not shouldDelete(msg):
+        if not self.replySender(msg) and not self.shouldDelete(msg):
             # good msg
             return False
         name = getDisplayUser(msg.from_user)
