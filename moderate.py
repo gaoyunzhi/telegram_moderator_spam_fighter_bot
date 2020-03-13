@@ -87,11 +87,11 @@ def handleGroupInternal(msg):
 		tele.kick_chat_member(msg.chat.id, msg.from_user.id)
 		msg.delete()
 		return
+	if db.replySender(msg):
+		autoDestroy(msg)
+		autoDestroy(msg.reply_text(db.replySender(msg)))
 	if db.shouldDelete(msg):
 		msg.delete()
-	if db.replySender(msg):
-		autoDestroy(msg.reply_text(db.replySender(msg)))
-		autoDestroy(msg)
 	if db.shouldLog(msg):
 		recordDelete(msg, debug_group, tele, db.getPermission(msg.from_user))
 
