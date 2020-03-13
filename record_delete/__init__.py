@@ -24,10 +24,6 @@ def getMsgType(msg):
 	return 'did some action'
 
 def recordDelete(msg, debug_group, tele, p):
-	try:
-		msg.delete()
-	except:
-		return
 	if p:
 		p = ' (' + p + ')'
 	else:
