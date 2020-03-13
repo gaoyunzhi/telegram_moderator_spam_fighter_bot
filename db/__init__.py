@@ -62,7 +62,7 @@ class DB(object):
             return False
         return True
 
-    def replySender(msg):
+    def replySender(self, msg):
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.WHITELIST):
             return
