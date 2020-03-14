@@ -21,6 +21,13 @@ this_bot = tele.id
 BOT_OWNER = CREDENTIALS['owner']
 db = DB()
 
+def replyText(msg, text, timeout):
+	try:
+		return autoDestroy(msg.reply_text(text), timeout)
+	except Exception e:
+		if str(e) != 'Reply message not found':
+			raise e
+
 @log_on_fail(debug_group)
 def handleJoin(update, context):
 	msg = update.message
@@ -35,7 +42,7 @@ def handleJoin(update, context):
 				pass
 	if not kicked:
 		autoDestroy(msg, 5)
-		autoDestroy(msg.reply_text('欢迎新朋友！新朋友请自我介绍~'), 5)
+		replyText(msg, '欢迎新朋友！新朋友请自我介绍~', 5)
 
 def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
@@ -89,7 +96,7 @@ def handleGroupInternal(msg):
 		return
 	if db.replySender(msg):
 		autoDestroy(msg)
-		autoDestroy(msg.reply_text(db.replySender(msg)))
+		replyText(msg, db.replySender(msg), 1)
 	if db.shouldDelete(msg):
 		msg.delete()
 	if db.shouldLog(msg):
