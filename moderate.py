@@ -85,6 +85,12 @@ def handleAutoUnblock(usr = None, chat = None):
 			except:
 				pass
 
+def isAdminMsg(msg):
+	print('here1')
+	print(tele.get_chat_member(msg.chat_id, msg.from_user.id).can_delete_messages)
+	print(tele.get_chat_member(msg.chat_id, msg.from_user.id).can_be_edited)
+	return tele.get_chat_member(msg.chat_id, msg.from_user.id).can_delete_messages
+
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
 	global chats
