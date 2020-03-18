@@ -86,10 +86,10 @@ def handleAutoUnblock(usr = None, chat = None):
 				pass
 
 def isAdminMsg(msg):
-	print('here1')
-	print(tele.get_chat_member(msg.chat_id, msg.from_user.id).can_delete_messages)
-	print(tele.get_chat_member(msg.chat_id, msg.from_user.id).can_be_edited)
-	return tele.get_chat_member(msg.chat_id, msg.from_user.id).can_delete_messages
+	for admin in tele.get_chat_administrators(msg.chat_id):
+		if admin.user.id == msg.from_user.id and (admin.can_delete_messages or not admin.can_be_edited):
+			return True
+	return False
 
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
@@ -100,6 +100,8 @@ def handleGroupInternal(msg):
 	if db.shouldKick(msg.from_user):
 		tele.kick_chat_member(msg.chat.id, msg.from_user.id)
 		autoDestroy(msg, 0)
+		return
+	if isAdminMsg(msg):
 		return
 	if db.replySender(msg):
 		autoDestroy(msg)
