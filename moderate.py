@@ -34,10 +34,10 @@ def handleJoin(update, context):
 	kicked = False
 	for member in msg.new_chat_members:
 		if db.shouldKick(member):
+			autoDistory(msg, 0)
+			kicked = True
 			try:
-				msg.delete()
 				tele.kick_chat_member(msg.chat.id, member.id)
-				kicked = True
 			except:
 				pass
 	if not kicked:
@@ -95,7 +95,7 @@ def handleGroupInternal(msg):
 		handleAutoUnblock(chat = [msg.chat.id])
 	if db.shouldKick(msg.from_user):
 		tele.kick_chat_member(msg.chat.id, msg.from_user.id)
-		msg.delete()
+		autoDestroy(msg, 0)
 		return
 	if isAdminMsg(msg):
 		return
@@ -103,7 +103,7 @@ def handleGroupInternal(msg):
 		autoDestroy(msg)
 		replyText(msg, db.replySender(msg), 1)
 	if db.shouldDelete(msg):
-		msg.delete()
+		autoDestroy(msg, 0)
 	if db.shouldLog(msg):
 		recordDelete(msg, debug_group, tele, db.getPermission(msg.from_user))
 
@@ -118,7 +118,6 @@ def handleAdmin(msg):
 	if msg.text in ['reset', 'r']:  
 		adminAction(None, msg, 'reset')
 
-@log_on_fail(debug_group)
 def handleGroup(update, context):
 	msg = update.effective_message
 	if not msg:
