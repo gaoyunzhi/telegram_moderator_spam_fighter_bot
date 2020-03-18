@@ -34,7 +34,7 @@ def handleJoin(update, context):
 	kicked = False
 	for member in msg.new_chat_members:
 		if db.shouldKick(member):
-			autoDistory(msg, 0)
+			autoDestory(msg, 0)
 			kicked = True
 			try:
 				tele.kick_chat_member(msg.chat.id, member.id)
