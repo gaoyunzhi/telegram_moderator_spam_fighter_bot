@@ -24,7 +24,7 @@ db = DB()
 def replyText(msg, text, timeout):
 	try:
 		return autoDestroy(msg.reply_text(text), timeout)
-	except Exception e:
+	except Exception as e:
 		if str(e) != 'Reply message not found':
 			raise e
 
