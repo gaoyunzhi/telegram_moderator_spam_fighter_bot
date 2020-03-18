@@ -85,6 +85,9 @@ def handleAutoUnblock(usr = None, chat = None):
 			except:
 				pass
 
+def isAdminMsg(msg):
+	return tele.get_chat_member(msg.chat_id, msg.from_user).can_delete_messages
+
 def handleGroupInternal(msg):
 	global chats
 	if not msg.chat.id in chats:
@@ -93,6 +96,8 @@ def handleGroupInternal(msg):
 	if db.shouldKick(msg.from_user):
 		tele.kick_chat_member(msg.chat.id, msg.from_user.id)
 		msg.delete()
+		return
+	if isAdminMsg(msg):
 		return
 	if db.replySender(msg):
 		autoDestroy(msg)
