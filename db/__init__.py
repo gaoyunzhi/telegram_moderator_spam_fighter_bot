@@ -58,7 +58,7 @@ class DB(object):
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.MUTELIST):
             return False
-        if msg.text and len(msg.text) < 3:
+        if msg.text and len(msg.text) < 6:
             return False
         return True
 
