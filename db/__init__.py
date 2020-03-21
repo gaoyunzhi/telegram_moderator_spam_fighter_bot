@@ -37,19 +37,24 @@ class DB(object):
 
     def badText(self, text):
         if matchKey(text, self.WHITELIST):
-            return False
-        return matchKey(text, self.NAME_BLACKLIST) or \
-            matchKey(text, self.KICKLIST)
+            return
+        if not text:
+            return
+        for x in list(self.NAME_BLACKLIST) + list(self.KICKLIST):
+            if x.lower() in text.lower():
+                return x
 
     def shouldKick(self, user):
         return self.badText(getDisplayUser(user))
 
     def highRiskText(self, text):
-        if not text or self.badText(text):
-            return True
+        if not text:
+            return 'no text'
+        if self.badText(text):
+            return self.badText(text)
         for index, x in enumerate(text):
             if text[index:index + 3] == x * 3:
-                return True
+                return 'repeated character ' + x
 
     def shouldLog(self, msg):
         if not self.replySender(msg) and not self.shouldDelete(msg):
@@ -60,7 +65,22 @@ class DB(object):
             return False
         if msg.text and len(msg.text) < 6:
             return False
-        return True
+                if not msg.text:
+        if msg.forward_from:
+            return 'forward'
+        if msg.photo:
+            return 'photo'
+        if msg.sticker:
+            return 'sticker'
+        if msg.video:
+            return 'video'
+        if msg.document:
+            return 'document'
+        if self.highRiskText(msg.text):
+            return self.highRiskText(msg.text)
+        if self.highRiskText(name):
+            return self.highRiskText(name)
+        return 'can not find reason'
 
     def replySender(self, msg):
         name = getDisplayUser(msg.from_user)
