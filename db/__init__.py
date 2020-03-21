@@ -54,7 +54,7 @@ class DB(object):
             return self.badText(text)
         for index, x in enumerate(text):
             if text[index:index + 3] == x * 3:
-                return 'repeated character ' + x
+                return 'repeated ' + x
 
     def shouldLog(self, msg):
         if not self.replySender(msg) and not self.shouldDelete(msg):
@@ -76,8 +76,8 @@ class DB(object):
         if msg.document:
             return 'document'
         if self.highRiskText(msg.text):
-            return self.highRiskText(msg.text)
-        return 'can not find reason'
+            return 'text contain: ' + self.highRiskText(msg.text)
+        return 'user name not set:' + msg.text
 
     def replySender(self, msg):
         name = getDisplayUser(msg.from_user)
