@@ -103,14 +103,22 @@ def handleGroupInternal(msg):
 		return
 	if isAdminMsg(msg):
 		return
-	if db.replySender(msg):
+
+	external_reason = db.replySender(msg)
+	if external_reason:
+		replyText(msg, external_reason, 1)
 		autoDestroy(msg)
-		replyText(msg, db.replySender(msg), 1)
-	if db.shouldDelete(msg):
+
+	internal_reason = db.shouldDelete(msg)
+	if internal_reason:
+		if internal_reason != True:
+			replyText(msg, internal_reason, 0)
 		autoDestroy(msg, 0)
-	reason = db.shouldLog(msg)
-	if reason:
-		recordDelete(msg, debug_group, tele, db.getPermission(msg.from_user), reason)
+
+	log_reason = db.shouldLog(msg)
+	if log_reason:
+		recordDelete(msg, debug_group, tele, 
+			db.getPermission(msg.from_user), log_reason)
 
 def handleAdmin(msg):
 	# TODO: check do I need to mute anyone? Why not just kick them?

@@ -99,18 +99,18 @@ class DB(object):
     def shouldDelete(self, msg):
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.WHITELIST):
-            return False
+            return
         if matchKey(name, self.MUTELIST):
-            return True
+            return '请友善交流讨论。'
         if highRiskUsr(msg.from_user):
-            return True
+            return '请勿发表无关信息。'
         if not msg.text:
             return True
         if self.highRiskText(msg.text):
             return True
         if msg.forward_from or msg.photo or msg.sticker or msg.video:
             return True
-        return False
+        return
 
     def getPermission(self, target):
         tid = str(target.id)
