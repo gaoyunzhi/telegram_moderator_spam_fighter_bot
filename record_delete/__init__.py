@@ -16,7 +16,7 @@ def recordDelete(msg, debug_group, tele, p, reason):
 	else:
 		p = ''
 	r = debug_group.send_message(
-		text='group: %s | user: %s | reason: %s' % (getGroupName(msg.chat, tele),
+		text='%s | %s | %s' % (getGroupName(msg.chat, tele),
 			getDisplayUser(msg.from_user) + p, reason),
 		parse_mode='Markdown',
 		disable_web_page_preview=True)
