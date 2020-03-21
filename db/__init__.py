@@ -65,7 +65,6 @@ class DB(object):
             return False
         if msg.text and len(msg.text) < 6:
             return False
-                if not msg.text:
         if msg.forward_from:
             return 'forward'
         if msg.photo:
