@@ -100,6 +100,8 @@ class DB(object):
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.WHITELIST):
             return False
+        if matchKey(name, self.MUTELIST):
+            return True
         if highRiskUsr(msg.from_user):
             return True
         if not msg.text:
