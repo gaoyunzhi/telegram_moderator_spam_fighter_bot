@@ -77,8 +77,6 @@ class DB(object):
             return 'document'
         if self.highRiskText(msg.text):
             return self.highRiskText(msg.text)
-        if self.highRiskText(name):
-            return self.highRiskText(name)
         return 'can not find reason'
 
     def replySender(self, msg):
@@ -97,8 +95,6 @@ class DB(object):
             return '您暂时不可以发多媒体信息哦~ 已转交人工审核，审核通过会赋予您权限。'
         if self.highRiskText(msg.text):
             return '您的消息被机器人认定为含有广告，已转交人工审核。'
-        if self.highRiskText(name):
-            return '您的用户名被机器人认定为含有广告，已转交人工审核。'
 
     def shouldDelete(self, msg):
         name = getDisplayUser(msg.from_user)
@@ -108,7 +104,7 @@ class DB(object):
             return True
         if not msg.text:
             return True
-        if self.highRiskText(msg.text) or self.highRiskText(name):
+        if self.highRiskText(msg.text):
             return True
         if msg.forward_from or msg.photo or msg.sticker or msg.video:
             return True
