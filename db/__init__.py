@@ -40,9 +40,13 @@ class DB(object):
             return
         if not text:
             return
+        result = []
         for x in list(self.NAME_BLACKLIST) + list(self.KICKLIST):
             if x.lower() in text.lower():
-                return x
+                result.append(x)
+        if not result:
+            return
+        return ' '.join(result)
 
     def shouldKick(self, user):
         return self.badText(getDisplayUser(user))
