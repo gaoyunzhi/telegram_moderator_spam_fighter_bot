@@ -74,14 +74,14 @@ class DB(object):
         if msg.photo:
             return 'photo'
         if msg.sticker:
-            return 'sticker'
+            return False
         if msg.video:
             return 'video'
         if msg.document:
             return 'document'
         if self.highRiskText(msg.text):
             return 'text contain: ' + self.highRiskText(msg.text)
-        return 'user name not set:' + msg.text
+        return 'user name not set: ' + msg.text
 
     def replySender(self, msg):
         name = getDisplayUser(msg.from_user)
