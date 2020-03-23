@@ -20,5 +20,7 @@ def recordDelete(msg, debug_group, tele, p, reason):
 			getDisplayUser(msg.from_user) + p, reason),
 		parse_mode='Markdown',
 		disable_web_page_preview=True)
-	if not r.entities or len(r.entities) != 2:
-		r.delete() # not actionable
+	for item in r.entities:
+		if item['type'] == 'text_mention' and item.user:
+			return
+	r.delete()
