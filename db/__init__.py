@@ -97,9 +97,6 @@ class DB(object):
             return 'no text'
         if self.badText(text):
             return self.badText(text)
-        for index, x in enumerate(text):
-            if text[index:index + 3] == x * 3:
-                return 'repeated ' + x
 
     def shouldLog(self, msg):
         if not self.replySender(msg) and not self.shouldDelete(msg):
@@ -120,6 +117,8 @@ class DB(object):
             return 'video'
         if msg.document:
             return 'document'
+        if not msg.text:
+            return 'no text'
         if self.highRiskText(msg.text):
             detail = ''
             if len(msg.text) < 20:
