@@ -43,7 +43,7 @@ class DB(object):
     def saveBlacklist(self):
         lines = [(k.strip().lower(), v) for (k, v) in self.BLACKLIST.items() 
             if k and k.strip()]
-        lines = sorted([('%s: %f' % l).rstrip('0') for l in lines])
+        lines = sorted([('%s: %f' % l).rstrip('0').rstrip('.') for l in lines])
         with open('db/BLACKLIST', 'w') as f:
             f.write('\n'.join(lines))
         self.commit()
@@ -68,7 +68,7 @@ class DB(object):
         if not text:
             return
         text = text.lower()
-        self.BLACKLIST[text] = self.BLACKLIST.get(text) + 0.5
+        self.BLACKLIST[text] = self.BLACKLIST.get(text, 0.0) + 0.5
         self.saveBlacklist()
 
     def badText(self, text):
