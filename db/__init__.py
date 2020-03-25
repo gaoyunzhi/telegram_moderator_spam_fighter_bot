@@ -54,22 +54,24 @@ class DB(object):
     def reduceBadness(self, text):
         text = text.strip()
         if not text:
-            return
+            return 'no action'
         text = text.lower()
         if text not in self.BLACKLIST:
-            return
+            return 'no action'
         self.BLACKLIST[text] -= 0.5
         if self.BLACKLIST[text] < 0.01:
             del self.BLACKLIST[text]
-        return self.saveBlacklist()
+        self.saveBlacklist()
+        return text + ' badness: ' + str(self.BLACKLIST[text])
 
     def addBadness(self, text):
         text = text.strip()
         if not text:
-            return
+            return 'no action'
         text = text.lower()
         self.BLACKLIST[text] = self.BLACKLIST.get(text, 0.0) + 0.5
-        return self.saveBlacklist()
+        self.saveBlacklist()
+        return text + ' badness: ' + str(self.BLACKLIST[text])
 
     def badText(self, text):
         if matchKey(text, self.WHITELIST):

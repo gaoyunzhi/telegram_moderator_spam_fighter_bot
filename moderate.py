@@ -129,10 +129,10 @@ def handleCommand(msg):
 		return
 	if command in ['rb', 'reducebadness']:
 		r = db.reduceBadness(text)
-		msg.reply_text('result: ' + str(r))
+		msg.reply_text(r)
 	if command in ['ab', 'addbadness']:
 		r = db.addBadness(text)
-		msg.reply_text('result: ' + str(r))
+		msg.reply_text(r)
 
 def handleAdmin(msg):
 	# TODO: check do I need to mute anyone? Why not just kick them?
