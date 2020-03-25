@@ -61,7 +61,7 @@ class DB(object):
         self.BLACKLIST[text] -= 0.5
         if self.BLACKLIST[text] < 0.01:
             del self.BLACKLIST[text]
-        self.saveBlacklist()
+        return self.saveBlacklist()
 
     def addBadness(self, text):
         text = text.strip()
@@ -69,7 +69,7 @@ class DB(object):
             return
         text = text.lower()
         self.BLACKLIST[text] = self.BLACKLIST.get(text, 0.0) + 0.5
-        self.saveBlacklist()
+        return self.saveBlacklist()
 
     def badText(self, text):
         if matchKey(text, self.WHITELIST):

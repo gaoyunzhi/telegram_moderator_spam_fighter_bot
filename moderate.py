@@ -120,17 +120,19 @@ def handleGroupInternal(msg):
 		recordDelete(msg, debug_group, tele, 
 			db.getPermission(msg.from_user), log_reason)
 
-def handleCommand(raw):
-	if not raw or not len(raw.split()) == 2:
+def handleCommand(msg):
+	if not msg.text or not len(msg.text.split()) == 2:
 		return
-	command = raw.split()[0].lower()
-	text = raw.split()[1]
+	command = msg.text.split()[0].lower()
+	text = msg.text.split()[1]
 	if not text:
 		return
 	if command in ['rb', 'reducebadness']:
-		db.reduceBadness(text)
+		r = db.reduceBadness(text)
+		msg.reply_text('result: ' + str(r))
 	if command in ['ab', 'addbadness']:
-		db.addBadness(text)
+		r = db.addBadness(text)
+		msg.reply_text('result: ' + str(r))
 
 def handleAdmin(msg):
 	# TODO: check do I need to mute anyone? Why not just kick them?
@@ -142,7 +144,7 @@ def handleAdmin(msg):
 		adminAction('WHITELIST', msg, 'whitelist')
 	if msg.text in ['reset', 'r']:  
 		adminAction(None, msg, 'reset')
-	handleCommand(msg.text)
+	handleCommand(msg)
 
 def handleGroup(update, context):
 	msg = update.effective_message
