@@ -1,4 +1,5 @@
 from telegram_util import matchKey, getDisplayUser
+import yaml
 
 def highRiskUsr(user):
     try:
@@ -33,20 +34,23 @@ class DB(object):
     def __init__(self):
         for l in self.lists:
             self.readFile(l)
-        self.readFile('NAME_BLACKLIST')
+        with open('db/BLACKLIST') as f:
+            self.BLACKLIST = yaml.load(f, Loader=yaml.FullLoader)
+        self.BLACKLIST = {str(k).strip():float(v) for (k,v) in 
+            self.BLACKLIST.items() if str(k).strip()}
 
     def badText(self, text):
         if matchKey(text, self.WHITELIST):
             return
         if not text:
             return
-        result = []
-        for x in list(self.NAME_BLACKLIST) + list(self.KICKLIST):
+        result = {}
+        for x in list(self.BLACKLIST.keys()) + list(self.KICKLIST):
             if x.lower() in text.lower():
-                result.append(x)
-        if not result:
-            return
-        return ' '.join(result)
+                result[x] = self.BLACKLIST.get(x, 1)
+        if sum(result.values()) < 1:
+            return 
+        return ' '.join(result.keys())
 
     def shouldKick(self, user):
         return self.badText(getDisplayUser(user))
@@ -80,7 +84,10 @@ class DB(object):
         if msg.document:
             return 'document'
         if self.highRiskText(msg.text):
-            return 'text contain: ' + self.highRiskText(msg.text)
+            detail = ''
+            if len(msg.text) < 20:
+                detail = ' msg: ' + msg.text
+            return 'text contain: ' + self.highRiskText(msg.text) + detail
         return 'user name not set: ' + msg.text
 
     def replySender(self, msg):
