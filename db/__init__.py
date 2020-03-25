@@ -50,8 +50,9 @@ class DB(object):
         self.commit()
         
     def commit(self):
+        # see if I need to deal with race condition
         command = 'git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1'
-        threading.Timer(6, lambda: os.system(command)).start()
+        threading.Timer(60, lambda: os.system(command)).start()
 
     def reduceBadness(self, text):
         text = text.strip()
