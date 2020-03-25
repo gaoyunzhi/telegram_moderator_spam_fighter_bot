@@ -135,7 +135,7 @@ def handleCommand(msg):
 		msg.reply_text(r)
 
 def handleAdmin(msg):
-	# TODO: check do I need to mute anyone? Why not just kick them?
+	# TODO: check do I need to mute anyone? Why not just kick 0em?
 	if msg.text in ['mute', 'm']:
 		adminAction('MUTELIST', msg, 'mute')
 	if msg.text in ['kick', 'k']:

@@ -1,6 +1,7 @@
 from telegram_util import matchKey, getDisplayUser
 import yaml
 import os
+import threading
 
 def highRiskUsr(user):
     try:
@@ -49,7 +50,8 @@ class DB(object):
         self.commit()
         
     def commit(self):
-        os.system('git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1')
+        command = 'git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1'
+        threading.Timer(6, lambda: os.system(command)).start()
 
     def reduceBadness(self, text):
         text = text.strip()
