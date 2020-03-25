@@ -1,5 +1,6 @@
 from telegram_util import matchKey, getDisplayUser
 import yaml
+import os
 
 def highRiskUsr(user):
     try:
@@ -38,6 +39,31 @@ class DB(object):
             self.BLACKLIST = yaml.load(f, Loader=yaml.FullLoader)
         self.BLACKLIST = {str(k).strip():float(v) for (k,v) in 
             self.BLACKLIST.items() if str(k).strip()}
+
+    def saveBlacklist(self):
+        with open('db/BLACKLIST', 'w') as f:
+            f.write(yaml.dump(self.BLACKLIST, sort_keys=True))
+        os.system('git add . && git commit -m commit && git push -u -f')
+
+    def reduceBadness(self, text):
+        text = text.strip()
+        if not text:
+            return
+        text = text.lower()
+        if text not in self.BLACKLIST:
+            return
+        self.BLACKLIST[text] -= 0.5
+        if self.BLACKLIST[text] < 0.01:
+            del self.self.BLACKLIST[text]
+        self.saveBlacklist()
+
+    def addBadness(self, text):
+        text = text.strip()
+        if not text:
+            return
+        text = text.lower()
+        self.BLACKLIST[text] = self.BLACKLIST.get(text) + 0.5
+        self.saveBlacklist()
 
     def badText(self, text):
         if matchKey(text, self.WHITELIST):
@@ -137,3 +163,4 @@ class DB(object):
             else:
                 getattr(self, l).discard(tid)
             self.saveFile(l)
+        os.system('git add . && git commit -m commit && git push -u -f')
