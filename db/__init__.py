@@ -43,10 +43,13 @@ class DB(object):
     def saveBlacklist(self):
         lines = [(k.strip().lower(), v) for (k, v) in self.BLACKLIST.items() 
             if k and k.strip()]
-        lines = sorted(['%s: %f' % l for l in lines])
+        lines = sorted([('%s: %f' % l).rstrip('0') for l in lines])
         with open('db/BLACKLIST', 'w') as f:
             f.write('\n'.join(lines))
-        os.system('git add . && git commit -m commit && git push -u -f > /dev/null 2>&1')
+        self.commit()
+        
+    def commit(self):
+        os.system('git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1')
 
     def reduceBadness(self, text):
         text = text.strip()
@@ -57,7 +60,7 @@ class DB(object):
             return
         self.BLACKLIST[text] -= 0.5
         if self.BLACKLIST[text] < 0.01:
-            del self.self.BLACKLIST[text]
+            del self.BLACKLIST[text]
         self.saveBlacklist()
 
     def addBadness(self, text):
@@ -166,4 +169,4 @@ class DB(object):
             else:
                 getattr(self, l).discard(tid)
             self.saveFile(l)
-        os.system('git add . && git commit -m commit && git push -u -f > /dev/null 2>&1')
+        self.commit()
