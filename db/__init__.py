@@ -36,14 +36,17 @@ class DB(object):
         for l in self.lists:
             self.readFile(l)
         with open('db/BLACKLIST') as f:
-            self.BLACKLIST = yaml.load(f, Loader=yaml.FullLoader)
-        self.BLACKLIST = {str(k).strip():float(v) for (k,v) in 
-            self.BLACKLIST.items() if str(k).strip()}
+            lines = [x.strip().split(':') for x in f.readlines() if x.strip()]
+        self.BLACKLIST = {line[0].strip().lower(): float(line[1]) 
+            for line in lines if line[0] and line[0].strip()}
 
     def saveBlacklist(self):
+        lines = [(k.strip().lower(), v) for (k, v) in self.BLACKLIST.items() 
+            if k and k.strip()]
+        lines = sorted(['%s: %f' % l for l in lines])
         with open('db/BLACKLIST', 'w') as f:
-            f.write(yaml.dump(self.BLACKLIST, sort_keys=True))
-        os.system('git add . && git commit -m commit && git push -u -f')
+            f.write('\n'.join(lines))
+        os.system('git add . && git commit -m commit && git push -u -f > /dev/null 2>&1')
 
     def reduceBadness(self, text):
         text = text.strip()
@@ -163,4 +166,4 @@ class DB(object):
             else:
                 getattr(self, l).discard(tid)
             self.saveFile(l)
-        os.system('git add . && git commit -m commit && git push -u -f')
+        os.system('git add . && git commit -m commit && git push -u -f > /dev/null 2>&1')
