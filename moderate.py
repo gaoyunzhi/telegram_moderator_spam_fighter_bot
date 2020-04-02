@@ -43,7 +43,9 @@ def handleJoin(update, context):
 				pass
 	if not kicked:
 		autoDestroy(msg, 5)
-		replyText(msg, gs.getGreeting(msg.chat_id), 5)
+		greeting = gs.getGreeting(msg.chat_id)
+		if greeting:
+			replyText(msg, greeting, 5)
 
 def getAdminActionTarget(msg):
 	if not msg.reply_to_message:

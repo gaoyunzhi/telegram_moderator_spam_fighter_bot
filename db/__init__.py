@@ -34,7 +34,7 @@ class GroupSetting(object):
         self.disable_moderation = content.get('disable_moderation', [])
 
     def getGreeting(self, chat_id):
-        return self.greeting.get(chat_id) or '欢迎新朋友！新朋友请自我介绍~'
+        return self.greeting.get(chat_id, '欢迎新朋友！新朋友请自我介绍~')
 
     def setGreeting(self, chat_id, text):
         self.greeting[chat_id] = text
