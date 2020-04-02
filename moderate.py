@@ -156,7 +156,10 @@ def handleWildAdminInternal(msg):
 		gs.setDisableModeration(msg.chat_id, True)
 		return 'moderation disabled'
 	if matchKey(msg.text, ['set_greeting', 'sg']):
-		greeting = msg.text[msg.text.find(' '):].strip()
+		if msg.text.find(' ') != -1:
+			greeting = msg.text[msg.text.find(' '):].strip()
+		else:
+			greeting = ''
 		gs.setGreeting(msg.chat_id, greeting)
 		return 'greeting set to: ' + greeting
 
@@ -168,19 +171,15 @@ def handleWildAdmin(msg):
 
 @log_on_fail(debug_group)
 def handleGroup(update, context):
-	print('a')
 	msg = update.effective_message
 	if not msg:
 		return
-	print('b')
 
 	if msg.chat_id != debug_group.id and \
 		not gs.isModerationDisabled(msg.chat_id):
 		handleGroupInternal(msg)
 
-	print(0)
 	if msg.text and msg.text.startswith('/m') and isAdminMsg(msg):
-		print(1)
 		handleWildAdmin(msg)
 
 	if msg.from_user.id == BOT_OWNER:
