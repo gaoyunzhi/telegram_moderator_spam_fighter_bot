@@ -3,7 +3,7 @@ import yaml
 import os
 import threading
 
-def commit(self):
+def commit():
     # see if I need to deal with race condition
     command = 'git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1'
     threading.Timer(60, lambda: os.system(command)).start()
@@ -41,13 +41,17 @@ class GroupSetting(object):
         self.save()
 
     def setDisableModeration(self, chat_id, b):
-        self.disable_moderation[chat_id] = b
+        if not b and chat_id in self.disable_moderation:
+            self.disable_moderation.remove(chat_id)
+        if b and not chat_id in self.disable_moderation:
+            self.disable_moderation.append(chat_id)
+            self.disable_moderation.sort()
         self.save()
 
     def isModerationDisabled(self, chat_id):
-        return self.disable_moderation.get(chat_id, False)
+        return chat_id in self.disable_moderation
 
-    def save():
+    def save(self):
         with open('db/SETTING', 'w') as f:
             f.write(yaml.dump({
                 'greeting': self.greeting, 

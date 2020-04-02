@@ -3,7 +3,7 @@
 
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram import ChatPermissions
-from telegram_util import getDisplayUser, log_on_fail, autoDestroy
+from telegram_util import getDisplayUser, log_on_fail, autoDestroy, matchKey
 import yaml
 from db import DB, GroupSetting
 from record_delete import recordDelete
@@ -156,7 +156,7 @@ def handleWildAdminInternal(msg):
 		gs.setDisableModeration(msg.chat_id, True)
 		return 'moderation disabled'
 	if matchKey(msg.text, ['set_greeting', 'sg']):
-		greeting = msg[msg.text.find(' '):].strip()
+		greeting = msg.text[msg.text.find(' '):].strip()
 		gs.setGreeting(msg.chat_id, greeting)
 		return 'greeting set to: ' + greeting
 
@@ -166,10 +166,13 @@ def handleWildAdmin(msg):
 		autoDestroy(msg.reply_text(r), 0.1)
 		msg.delete()
 
+@log_on_fail(debug_group)
 def handleGroup(update, context):
+	print('a')
 	msg = update.effective_message
 	if not msg:
 		return
+	print('b')
 
 	if msg.chat_id != debug_group.id and \
 		not gs.isModerationDisabled(msg.chat_id):
