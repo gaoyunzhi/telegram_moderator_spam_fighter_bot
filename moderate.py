@@ -149,6 +149,7 @@ def handleAdmin(msg):
 
 def handleWildAdminInternal(msg):
 	if matchKey(msg.text, ['enable_moderation', 'em']):
+		print(2)
 		gs.setDisableModeration(msg.chat_id, False)
 		return 'moderation enabled'
 	if matchKey(msg.text, ['disable_moderation', 'dm']):
@@ -174,7 +175,9 @@ def handleGroup(update, context):
 		not gs.isModerationDisabled(msg.chat_id):
 		handleGroupInternal(msg)
 
+	print(0)
 	if msg.text and msg.text.startswith('/m') and isAdminMsg(msg):
+		print(1)
 		handleWildAdmin(msg)
 
 	if msg.from_user.id == BOT_OWNER:
