@@ -3,6 +3,11 @@ import yaml
 import os
 import threading
 
+def commit(self):
+    # see if I need to deal with race condition
+    command = 'git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1'
+    threading.Timer(60, lambda: os.system(command)).start()
+
 def highRiskUsr(user):
     try:
         if int(user.first_name) > 10000:
@@ -20,6 +25,35 @@ def mediumRiskUsr(user):
         (user.first_name in user.last_name):
         return True
     return False
+
+class GroupSetting(object):
+    def __init__(self):
+        with open('db/SETTING') as f:
+            content = yaml.load(f, Loader=yaml.FullLoader)
+        self.greeting = content.get('greeting', {})
+        self.disable_moderation = content.get('disable_moderation', [])
+
+    def getGreeting(self, chat_id):
+        return self.greeting.get(chat_id, '欢迎新朋友！新朋友请自我介绍~')
+
+    def setGreeting(self, chat_id, text):
+        self.greeting[chat_id] = text
+        self.save()
+
+    def setDisableModeration(self, chat_id, b):
+        self.disable_moderation[chat_id] = b
+        self.save()
+
+    def isModerationDisabled(self, chat_id):
+        return self.disable_moderation.get(chat_id, False)
+
+    def save():
+        with open('db/SETTING', 'w') as f:
+            f.write(yaml.dump({
+                'greeting': self.greeting, 
+                'disable_moderation': self.disable_moderation,
+            }, sort_keys=True, indent=2))
+        commit()
 
 class DB(object):
     lists = ['KICKLIST', 'MUTELIST', 'WHITELIST']
@@ -47,12 +81,7 @@ class DB(object):
         lines = sorted([('%s: %f' % l).rstrip('0').rstrip('.') for l in lines])
         with open('db/BLACKLIST', 'w') as f:
             f.write('\n'.join(lines))
-        self.commit()
-        
-    def commit(self):
-        # see if I need to deal with race condition
-        command = 'git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1'
-        threading.Timer(60, lambda: os.system(command)).start()
+        commit()
 
     def reduceBadness(self, text):
         text = text.strip()
@@ -173,4 +202,4 @@ class DB(object):
             else:
                 getattr(self, l).discard(tid)
             self.saveFile(l)
-        self.commit()
+        commit()

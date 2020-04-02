@@ -5,7 +5,7 @@ from telegram.ext import Updater, MessageHandler, Filters
 from telegram import ChatPermissions
 from telegram_util import getDisplayUser, log_on_fail, autoDestroy
 import yaml
-from db import DB
+from db import DB, GroupSetting
 from record_delete import recordDelete
 
 unblock_requests = {}
@@ -20,6 +20,7 @@ debug_group = tele.get_chat(-1001198682178)
 this_bot = tele.id
 BOT_OWNER = CREDENTIALS['owner']
 db = DB()
+gs = GroupSetting()
 
 def replyText(msg, text, timeout):
 	try:
@@ -42,7 +43,7 @@ def handleJoin(update, context):
 				pass
 	if not kicked:
 		autoDestroy(msg, 5)
-		replyText(msg, '欢迎新朋友！新朋友请自我介绍~', 5)
+		replyText(msg, gs.getGreeting(msg.chat_id), 5)
 
 def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
@@ -146,13 +147,25 @@ def handleAdmin(msg):
 		adminAction(None, msg, 'reset')
 	handleCommand(msg)
 
+def handleWildAdmin(msg):
+	if 'disable_moderation' in msg.text:
+		gs.setDisableModeration(msg.chat_id, True)
+	if 'enable_moderation' in msg.text:
+		gs.setDisableModeration(msg.chat_id, False)
+	if 'set_greeting' in msg.text:
+		greeting = msg[msg.text.find(' '):].strip()
+		gs.setGreeting(msg.chat_id, greeting)
+
 def handleGroup(update, context):
 	msg = update.effective_message
 	if not msg:
 		return
 
-	if msg.chat_id != debug_group.id:
+	if msg.chat_id != debug_group.id and not gs.isModerationDisabled(msg.chat_id):
 		handleGroupInternal(msg)
+
+	if isAdminMsg(msg) and msg.text and msg.text.startswith('/m'):
+		handleWildAdmin(msg)
 
 	if msg.from_user.id == BOT_OWNER:
 		handleAdmin(msg)
