@@ -147,14 +147,23 @@ def handleAdmin(msg):
 		adminAction(None, msg, 'reset')
 	handleCommand(msg)
 
-def handleWildAdmin(msg):
-	if 'disable_moderation' in msg.text:
-		gs.setDisableModeration(msg.chat_id, True)
-	if 'enable_moderation' in msg.text:
+def handleWildAdminInternal(msg):
+	if matchKey(msg.text, ['enable_moderation', 'em']):
 		gs.setDisableModeration(msg.chat_id, False)
-	if 'set_greeting' in msg.text:
+		return 'moderation enabled'
+	if matchKey(msg.text, ['disable_moderation', 'dm']):
+		gs.setDisableModeration(msg.chat_id, True)
+		return 'moderation disabled'
+	if matchKey(msg.text, ['set_greeting', 'sg']):
 		greeting = msg[msg.text.find(' '):].strip()
 		gs.setGreeting(msg.chat_id, greeting)
+		return 'greeting set to: ' + greeting
+
+def handleWildAdmin(msg):
+	r = handleWildAdminInternal(msg)
+	if r:
+		autoDestroy(msg.reply_text(r), 0.1)
+		msg.delete()
 
 def handleGroup(update, context):
 	msg = update.effective_message
@@ -165,7 +174,7 @@ def handleGroup(update, context):
 		not gs.isModerationDisabled(msg.chat_id):
 		handleGroupInternal(msg)
 
-	if isAdminMsg(msg) and msg.text and msg.text.startswith('/m'):
+	if msg.text and msg.text.startswith('/m') and isAdminMsg(msg):
 		handleWildAdmin(msg)
 
 	if msg.from_user.id == BOT_OWNER:
