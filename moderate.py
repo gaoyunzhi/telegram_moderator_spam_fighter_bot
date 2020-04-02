@@ -161,7 +161,8 @@ def handleGroup(update, context):
 	if not msg:
 		return
 
-	if msg.chat_id != debug_group.id and not gs.isModerationDisabled(msg.chat_id):
+	if msg.chat_id != debug_group.id and \
+		not gs.isModerationDisabled(msg.chat_id):
 		handleGroupInternal(msg)
 
 	if isAdminMsg(msg) and msg.text and msg.text.startswith('/m'):
