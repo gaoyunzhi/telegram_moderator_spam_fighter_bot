@@ -123,6 +123,8 @@ class DB(object):
         return ' '.join(result.keys())
 
     def shouldKick(self, user):
+        if len(user.first_name or '') + len(user.last_name or '') > 80:
+            return True
         return self.badText(getDisplayUser(user))
 
     def highRiskText(self, text):
