@@ -146,7 +146,7 @@ class DB(object):
             return False
         if msg.text and len(msg.text) < 6:
             return False
-        if msg.forward_from:
+        if msg.forward_from or msg.forward_date:
             return False
         if msg.photo:
             return 'photo'
@@ -159,7 +159,7 @@ class DB(object):
         if not msg.text:
             return 'no text'
         if self.badTextScore(msg.text)[0] > 2:
-            return False 
+            return False x
         if self.highRiskText(msg.text):
             detail = ''
             if len(msg.text) < 20:
@@ -177,10 +177,10 @@ class DB(object):
             return '您的信息太短啦，为促进有效交流，我们即将删除您这条发言，请注意保存。欢迎修改后再发。'
         if mediumRiskUsr(msg.from_user):
             return '请先设置用户名再发言，麻烦您啦~ 我们即将删除您这条发言，请注意保存。'
-        if msg.forward_from:
-            return '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
         if msg.photo or msg.sticker or msg.video:
             return '您暂时不可以发多媒体信息哦~ 已转交人工审核，审核通过会赋予您权限。'
+        if msg.forward_from or msg.forward_date:
+            return '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
         if self.highRiskText(msg.text):
             return '您的消息被机器人认定为含有广告，已转交人工审核。'
 
