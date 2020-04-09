@@ -159,7 +159,7 @@ class DB(object):
         if not msg.text:
             return 'no text'
         if self.badTextScore(msg.text)[0] > 2:
-            return False x
+            return False
         if self.highRiskText(msg.text):
             detail = ''
             if len(msg.text) < 20:
