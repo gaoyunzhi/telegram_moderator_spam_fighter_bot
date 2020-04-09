@@ -109,17 +109,21 @@ class DB(object):
         self.saveBlacklist()
         return text + ' badness: ' + str(self.BLACKLIST[text])
 
-    def badText(self, text):
+    def badTextScore(self, text):
         if matchKey(text, self.WHITELIST):
-            return
+            return 0, []
         if not text:
-            return
+            return 0, []
         result = {}
         for x in list(self.BLACKLIST.keys()) + list(self.KICKLIST):
             if x.lower() in text.lower():
                 result[x] = self.BLACKLIST.get(x, 1)
-        if sum(result.values()) < 1:
-            return 
+        return sum(result.values()), result
+
+    def badText(self, text):
+        score, result = self.badTextScore(text)
+        if score < 1:
+            return
         return ' '.join(result.keys())
 
     def shouldKick(self, user):
@@ -143,7 +147,7 @@ class DB(object):
         if msg.text and len(msg.text) < 6:
             return False
         if msg.forward_from:
-            return 'forward'
+            return False
         if msg.photo:
             return 'photo'
         if msg.sticker:
@@ -154,6 +158,8 @@ class DB(object):
             return 'document'
         if not msg.text:
             return 'no text'
+        if self.badTextScore(msg.text)[0] > 2:
+            return False 
         if self.highRiskText(msg.text):
             detail = ''
             if len(msg.text) < 20:
