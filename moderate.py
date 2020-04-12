@@ -148,6 +148,9 @@ def handleCommand(msg):
 	if command in ['sb', 'setbadness']:
 		r = db.setBadness(text, float(msg.text.split()[2]))
 		msg.chat.send_message(r)
+	if command in ['md', 'moderator_debug']:
+		r = db.badText(msg.text)
+		msg.chat.send_message('result: ' + r)
 
 def handleAdmin(msg):
 	# TODO: check do I need to mute anyone? Why not just kick them?
