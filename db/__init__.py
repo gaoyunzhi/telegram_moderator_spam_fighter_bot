@@ -109,6 +109,17 @@ class DB(object):
         self.saveBlacklist()
         return text + ' badness: ' + str(self.BLACKLIST[text])
 
+    def setBadness(self, text, weight):
+        text = text.strip()
+        if not text:
+            return 'no action'
+        text = text.lower()
+        self.BLACKLIST[text] = weight
+        if weight == 0:
+            del self.BLACKLIST[text]
+        self.saveBlacklist()
+        return text + ' badness: ' + str(self.BLACKLIST.get(text, 0))
+
     def badTextScore(self, text):
         if matchKey(text, self.WHITELIST):
             return 0, []

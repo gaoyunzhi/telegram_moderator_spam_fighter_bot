@@ -136,6 +136,11 @@ def handleCommand(msg):
 	if command in ['ab', 'addbadness']:
 		r = db.addBadness(text)
 		msg.chat.send_message(r)
+	if command in ['sb', 'setbadness']:
+		text, weight = text.split()
+		weight = float(weight)
+		r = db.setBadness(text, weight)
+		msg.chat.send_message(r)
 
 def handleAdmin(msg):
 	# TODO: check do I need to mute anyone? Why not just kick them?
@@ -151,7 +156,6 @@ def handleAdmin(msg):
 
 def handleWildAdminInternal(msg):
 	if matchKey(msg.text, ['enable_moderation', 'em']):
-		print(2)
 		gs.setDisableModeration(msg.chat_id, False)
 		return 'moderation enabled'
 	if matchKey(msg.text, ['disable_moderation', 'dm']):
