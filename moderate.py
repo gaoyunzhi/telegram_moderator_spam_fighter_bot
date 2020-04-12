@@ -137,11 +137,7 @@ def handleCommand(msg):
 		r = db.addBadness(text)
 		msg.chat.send_message(r)
 	if command in ['sb', 'setbadness']:
-		print(1)
-		weight = float(msg.text.split()[2])
-		print(text, weight)
-		r = db.setBadness(text, weight)
-		print(r)
+		r = db.setBadness(text, float(msg.text.split()[2]))
 		msg.chat.send_message(r)
 
 def handleAdmin(msg):
