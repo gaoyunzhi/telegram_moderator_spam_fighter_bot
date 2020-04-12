@@ -176,7 +176,7 @@ class DB(object):
             if len(msg.text) < 20:
                 detail = ' msg: ' + msg.text
             return 'text contain: ' + self.highRiskText(msg.text) + detail
-        return 'user name not set: ' + msg.text
+        return False # user name not set
 
     def replySender(self, msg):
         name = getDisplayUser(msg.from_user)

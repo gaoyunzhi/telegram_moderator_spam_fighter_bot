@@ -94,6 +94,12 @@ def isAdminMsg(msg):
 			return True
 	return False
 
+def containBotOwnerAsAdmin(msg):
+	for admin in tele.get_chat_administrators(msg.chat_id):
+		if admin.user.id == BOT_OWNER:
+			return True
+	return False
+
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
 	global chats
@@ -101,7 +107,10 @@ def handleGroupInternal(msg):
 		chats.add(msg.chat.id)
 		handleAutoUnblock(chat = [msg.chat.id])
 	if db.shouldKick(msg.from_user):
-		tele.kick_chat_member(msg.chat.id, msg.from_user.id)
+		try:
+			tele.kick_chat_member(msg.chat.id, msg.from_user.id)
+		except:
+			pass
 		autoDestroy(msg, 0)
 		return
 	if isAdminMsg(msg):
@@ -119,7 +128,7 @@ def handleGroupInternal(msg):
 		autoDestroy(msg, 0)
 
 	log_reason = db.shouldLog(msg)
-	if log_reason:
+	if log_reason and containBotOwnerAsAdmin(msg):
 		recordDelete(msg, debug_group, tele, 
 			db.getPermission(msg.from_user), log_reason)
 
