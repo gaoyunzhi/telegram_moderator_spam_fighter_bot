@@ -150,7 +150,7 @@ def handleCommand(msg):
 		msg.chat.send_message(r)
 	if command in ['md', 'moderator_debug']:
 		r = db.badText(msg.text)
-		msg.chat.send_message('result: ' + r)
+		msg.chat.send_message('result: ' + str(r))
 
 def handleAdmin(msg):
 	# TODO: check do I need to mute anyone? Why not just kick them?
