@@ -124,7 +124,7 @@ def handleGroupInternal(msg):
 			db.getPermission(msg.from_user), log_reason)
 
 def handleCommand(msg):
-	if not msg.text or not len(msg.text.split()) == 2:
+	if not msg.text or len(msg.text.split()) < 2:
 		return
 	command = msg.text.split()[0].lower()
 	text = msg.text.split()[1]
@@ -137,9 +137,11 @@ def handleCommand(msg):
 		r = db.addBadness(text)
 		msg.chat.send_message(r)
 	if command in ['sb', 'setbadness']:
-		text, weight = text.split()
-		weight = float(weight)
+		print(1)
+		weight = float(msg.text.split()[2])
+		print(text, weight)
 		r = db.setBadness(text, weight)
+		print(r)
 		msg.chat.send_message(r)
 
 def handleAdmin(msg):
