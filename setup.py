@@ -23,9 +23,10 @@ def setup(mode):
 	if mode.startswith('debug'):
 		os.system(RUN_COMMAND[6:-2])
 	else:
-		os.system('touch nohup.out')
 		os.system(RUN_COMMAND)
-		os.system('tail -F nohup.out')
+		if mode != 'notail':
+			os.system('touch nohup.out')
+			os.system('tail -F nohup.out')
 
 
 if __name__ == '__main__':
