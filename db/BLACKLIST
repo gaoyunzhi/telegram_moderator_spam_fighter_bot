@@ -6,7 +6,7 @@ app: 0.5
 bitcoin: 1
 black: 1
 ccp: 1
-china: 1
+china: 0.1
 clayton: 1
 crypto: 1
 delete: 1
@@ -30,7 +30,7 @@ youtu: 1
 专业: 1
 专员: 1
 个人: 0.5
-中国: 0.5
+中国: 0.1
 人妖: 0.5
 从宇宙来: 0.5
 代发: 1
