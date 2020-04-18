@@ -3,13 +3,14 @@
 
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram import ChatPermissions
-from telegram_util import getDisplayUser, log_on_fail, autoDestroy, matchKey
+from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, matchKey
 import yaml
 from db import DB, GroupSetting
 from record_delete import recordDelete
 
 unblock_requests = {}
 chats = set()
+td = TimedDeleter()
 
 with open('CREDENTIALS') as f:
     CREDENTIALS = yaml.load(f, Loader=yaml.FullLoader)
@@ -24,7 +25,7 @@ gs = GroupSetting()
 
 def replyText(msg, text, timeout):
 	try:
-		return autoDestroy(msg.reply_text(text), timeout)
+		return td.delete(msg.reply_text(text), timeout)
 	except Exception as e:
 		if str(e) != 'Reply message not found':
 			raise e
@@ -35,14 +36,14 @@ def handleJoin(update, context):
 	kicked = False
 	for member in msg.new_chat_members:
 		if db.shouldKick(member):
-			autoDestroy(msg, 0)
+			td.delete(msg, 0)
 			kicked = True
 			try:
 				tele.kick_chat_member(msg.chat.id, member.id)
 			except:
 				pass
 	if not kicked:
-		autoDestroy(msg, 5)
+		td.delete(msg, 5)
 		greeting = gs.getGreeting(msg.chat_id)
 		if greeting:
 			replyText(msg, greeting, 5)
@@ -111,7 +112,7 @@ def handleGroupInternal(msg):
 			tele.kick_chat_member(msg.chat.id, msg.from_user.id)
 		except:
 			pass
-		autoDestroy(msg, 0)
+		td.delete(msg, 0)
 		return
 	if isAdminMsg(msg):
 		return
@@ -119,13 +120,13 @@ def handleGroupInternal(msg):
 	external_reason = db.replySender(msg)
 	if external_reason:
 		replyText(msg, external_reason, 1)
-		autoDestroy(msg)
+		td.delete(msg)
 
 	internal_reason = db.shouldDelete(msg)
 	if internal_reason:
 		if internal_reason != True:
 			replyText(msg, internal_reason, 0)
-		autoDestroy(msg, 0)
+		td.delete(msg, 0)
 
 	log_reason = db.shouldLog(msg)
 	if log_reason and containBotOwnerAsAdmin(msg):
@@ -182,7 +183,7 @@ def handleWildAdminInternal(msg):
 def handleWildAdmin(msg):
 	r = handleWildAdminInternal(msg)
 	if r:
-		autoDestroy(msg.reply_text(r), 0.1)
+		td.delete(msg.reply_text(r), 0.1)
 		msg.delete()
 
 @log_on_fail(debug_group)
