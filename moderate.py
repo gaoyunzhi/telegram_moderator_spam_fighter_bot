@@ -66,7 +66,7 @@ def adminAction(db_action, msg, display_action):
 	if msg.chat_id != debug_group.id:
 		if db_action == 'KICKLIST':
 			msg.reply_to_message.delete()
-		r = msg.reply_text('-')
+		r = msg.chat.send_message('-')
 		r.delete()
 		msg.delete()
 	debug_group.send_message(
