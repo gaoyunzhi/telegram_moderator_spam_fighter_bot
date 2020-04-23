@@ -23,8 +23,11 @@ def setup(mode):
 	if mode.startswith('debug'):
 		os.system(RUN_COMMAND[6:-2])
 	else:
+		print('run moderator')
 		os.system(RUN_COMMAND)
+		print('start run moderator')
 		if 'notail' not in sys.argv:
+			print('tail moderator')
 			os.system('touch nohup.out')
 			os.system('tail -F nohup.out')
 
