@@ -5,6 +5,7 @@ def kill():
 	os.system("ps aux | grep ython | grep moderate | awk '{print $2}' | xargs kill -9")
 
 def setup(mode):
+	print('run moderator 0')
 	if mode == 'kill':
 		kill()
 		return
@@ -19,6 +20,8 @@ def setup(mode):
 			os.system('rm get-pip.py')
 			os.system('pip3 install -r requirements.txt --upgrade')
 	kill()
+
+	print('run moderator 1')
 
 	if mode.startswith('debug'):
 		os.system(RUN_COMMAND[6:-2])
