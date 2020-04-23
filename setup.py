@@ -24,7 +24,7 @@ def setup(mode):
 		os.system(RUN_COMMAND[6:-2])
 	else:
 		os.system(RUN_COMMAND)
-		if mode != 'notail':
+		if 'notail' not in sys.argv:
 			os.system('touch nohup.out')
 			os.system('tail -F nohup.out')
 
