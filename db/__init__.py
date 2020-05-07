@@ -193,16 +193,16 @@ class DB(object):
         if msg.forward_from or msg.forward_date:
             return '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
         if self.highRiskText(msg.text):
-            return '您的消息被机器人认定为含有广告，已转交人工审核。'
+            return '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
 
     def shouldDelete(self, msg):
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.WHITELIST):
             return
         if matchKey(name, self.MUTELIST):
-            return '请友善交流讨论。'
+            return '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
         if highRiskUsr(msg.from_user):
-            return '请勿发表无关信息。'
+            return '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
         if not msg.text:
             return True
         if self.highRiskText(msg.text):
