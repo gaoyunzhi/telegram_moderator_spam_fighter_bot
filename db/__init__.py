@@ -168,19 +168,21 @@ class DB(object):
 
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.MUTELIST):
-            return 5, '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
+            yield (5, '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。')
 
         score, result = self.badTextScore(msg.text)
+        if score >= 1: # may need revisit
+            timeout = max(0, 7.5 / (2 ** score - 1) - 2.5) # 拍脑袋
+            yield (timeout, default_reason)
         if score > 0:
-            timeout = max(0, 30.0 / (score ** 4) - 25) # 拍脑袋
-            yield (timeout, None if timeout > 20 else default_reason)
+            yield (60, None)
 
         if mediumRiskUsr(msg.from_user):
             yield (20, '请先设置用户名再发言，麻烦您啦~ 我们将在20分钟后删除您这条发言，请注意保存。')
         if cnWordCount(msg.text) < 6:
             yield (60, None)
 
-        yield float('Inf'), None
+        yield (float('Inf'), None)
 
     def shouldDelete(self, msg):
         name = getDisplayUser(msg.from_user)

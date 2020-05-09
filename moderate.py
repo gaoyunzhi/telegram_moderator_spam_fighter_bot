@@ -121,7 +121,6 @@ def handleGroupInternal(msg):
 	if timeout != float('Inf'):
 		if reason:
 			replyText(msg, reason, 1)
-		print(timeout)
 		td.delete(msg, timeout)
 
 	log_reason = db.shouldLog(msg)
