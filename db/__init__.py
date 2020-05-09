@@ -1,4 +1,4 @@
-from telegram_util import matchKey, getDisplayUser
+from telegram_util import matchKey, getDisplayUser, cnWordCount
 import yaml
 import os
 import threading
@@ -142,74 +142,56 @@ class DB(object):
             return True
         return self.badText(getDisplayUser(user))
 
-    def highRiskText(self, text):
-        if not text:
-            return 'no text'
-        if self.badText(text):
-            return self.badText(text)
-
     def shouldLog(self, msg):
-        if not self.replySender(msg) and not self.shouldDelete(msg):
+        if self.shouldDelete(msg)[0] == float('Inf'):
             # good msg
             return False
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.MUTELIST):
             return False
-        if msg.text and len(msg.text) < 6:
+        if msg.forward_from or msg.forward_date or not msg.text:
             return False
-        if msg.forward_from or msg.forward_date:
+        if cnWordCount(msg.text) < 2 or self.badTextScore(msg.text)[0] > 2:
             return False
-        if msg.photo:
-            return 'photo'
-        if msg.sticker:
-            return False
-        if msg.video:
-            return 'video'
-        if msg.document:
-            return 'document'
-        if not msg.text:
-            return 'no text'
-        if self.badTextScore(msg.text)[0] > 2:
-            return False
-        if self.highRiskText(msg.text):
+        if self.badText(msg.text):
             detail = ''
             if len(msg.text) < 20:
                 detail = ' msg: ' + msg.text
-            return 'text contain: ' + self.highRiskText(msg.text) + detail
+            return 'text contain: ' + self.badText(msg.text) + detail
         return False # user name not set
 
-    def replySender(self, msg):
-        name = getDisplayUser(msg.from_user)
-        if matchKey(name, self.WHITELIST):
-            return
-        if matchKey(name, self.MUTELIST):
-            return
-        if msg.text and len(msg.text) < 6:
-            return '您的信息太短啦，为促进有效交流，我们即将删除您这条发言，请注意保存。欢迎修改后再发。'
-        if mediumRiskUsr(msg.from_user):
-            return '请先设置用户名再发言，麻烦您啦~ 我们即将删除您这条发言，请注意保存。'
-        if msg.photo or msg.sticker or msg.video:
-            return '您暂时不可以发多媒体信息哦~ 已转交人工审核，审核通过会赋予您权限。'
-        if msg.forward_from or msg.forward_date:
-            return '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
-        if self.highRiskText(msg.text):
-            return '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
-
     def shouldDelete(self, msg):
+        default_reason = '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。我们即将删除您这条发言，请注意保存。'
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.WHITELIST):
-            return
-        if matchKey(name, self.MUTELIST):
-            return '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
+            return float('Inf'), None
+
         if highRiskUsr(msg.from_user):
-            return '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
+            return 0, default_reason
+        if msg.photo or msg.sticker or msg.video or msg.document:
+            return 0, '您暂时不可以发多媒体信息哦~ 已转交人工审核，审核通过会赋予您权限。'
+        if msg.forward_from or msg.forward_date:
+            return 0, '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
         if not msg.text:
-            return True
-        if self.highRiskText(msg.text):
+            return 5, None # shouldn't be here
+        if cnWordCount(msg.text) < 2:
+            return 0, default_reason
+        score, result = self.badTextScore(msg.text)
+
+        if matchKey(name, self.MUTELIST):
+            return 5, '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
+        if mediumRiskUsr(msg.from_user):
+            return 20, '请先设置用户名再发言，麻烦您啦~ 我们将在20分钟后删除您这条发言，请注意保存。'
+        
+        if not msg.text:
+            return 5, None # shouldn't be here
+        if self.badText(msg.text):
             return True
         if msg.forward_from or msg.photo or msg.sticker or msg.video:
             return True
-        return
+        if cnWordCount(msg.text) < 6:
+            return 60, None
+        return float('Inf'), None
 
     def getPermission(self, target):
         tid = str(target.id)

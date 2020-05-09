@@ -117,16 +117,11 @@ def handleGroupInternal(msg):
 	if isAdminMsg(msg):
 		return
 
-	external_reason = db.replySender(msg)
-	if external_reason:
-		replyText(msg, external_reason, 1)
-		td.delete(msg)
-
-	internal_reason = db.shouldDelete(msg)
-	if internal_reason:
-		if internal_reason != True:
-			replyText(msg, internal_reason, 0)
-		td.delete(msg, 0)
+	timeout, reason = db.shouldDelete(msg)
+	if timeout != float('Inf'):
+		if reason != True:
+			replyText(msg, reason, 1)
+		td.delete(msg, timeout)
 
 	log_reason = db.shouldLog(msg)
 	if log_reason and containBotOwnerAsAdmin(msg):
