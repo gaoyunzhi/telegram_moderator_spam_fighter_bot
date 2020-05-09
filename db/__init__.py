@@ -3,6 +3,8 @@ import yaml
 import os
 import threading
 
+default_reason = '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。我们即将删除您这条发言，请注意保存。'
+
 def commit():
     # see if I need to deal with race condition
     command = 'git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1'
@@ -160,38 +162,42 @@ class DB(object):
             return 'text contain: ' + self.badText(msg.text) + detail
         return False # user name not set
 
+    def shouldDeleteReasons(self, msg):
+        if not msg.text:
+            yield (5, None) # shouldn't be here
+
+        name = getDisplayUser(msg.from_user)
+        if matchKey(name, self.MUTELIST):
+            return 5, '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
+
+        score, result = self.badTextScore(msg.text)
+        if score > 0:
+            timeout = max(0, 30.0 / (score ** 4) - 25) # 拍脑袋
+            yield (timeout, None if timeout > 20 else default_reason)
+
+        if mediumRiskUsr(msg.from_user):
+            yield (20, '请先设置用户名再发言，麻烦您啦~ 我们将在20分钟后删除您这条发言，请注意保存。')
+        if cnWordCount(msg.text) < 6:
+            yield (60, None)
+
+        yield float('Inf'), None
+
     def shouldDelete(self, msg):
-        default_reason = '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。我们即将删除您这条发言，请注意保存。'
         name = getDisplayUser(msg.from_user)
         if matchKey(name, self.WHITELIST):
             return float('Inf'), None
 
+        # delete immediately
         if highRiskUsr(msg.from_user):
             return 0, default_reason
         if msg.photo or msg.sticker or msg.video or msg.document:
             return 0, '您暂时不可以发多媒体信息哦~ 已转交人工审核，审核通过会赋予您权限。'
         if msg.forward_from or msg.forward_date:
             return 0, '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
-        if not msg.text:
-            return 5, None # shouldn't be here
         if cnWordCount(msg.text) < 2:
             return 0, default_reason
-        score, result = self.badTextScore(msg.text)
 
-        if matchKey(name, self.MUTELIST):
-            return 5, '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。'
-        if mediumRiskUsr(msg.from_user):
-            return 20, '请先设置用户名再发言，麻烦您啦~ 我们将在20分钟后删除您这条发言，请注意保存。'
-        
-        if not msg.text:
-            return 5, None # shouldn't be here
-        if self.badText(msg.text):
-            return True
-        if msg.forward_from or msg.photo or msg.sticker or msg.video:
-            return True
-        if cnWordCount(msg.text) < 6:
-            return 60, None
-        return float('Inf'), None
+        return sorted(list(self.shouldDeleteReasons(msg)))[0]
 
     def getPermission(self, target):
         tid = str(target.id)
