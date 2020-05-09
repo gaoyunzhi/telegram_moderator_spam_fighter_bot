@@ -153,11 +153,11 @@ class DB(object):
             return False
         if msg.forward_from or msg.forward_date or not msg.text:
             return False
-        if cnWordCount(msg.text) < 2 or self.badTextScore(msg.text)[0] > 2:
+        if cnWordCount(msg.text) < 10 or self.badTextScore(msg.text)[0] > 2:
             return False
         if self.badText(msg.text):
             detail = ''
-            if len(msg.text) < 20:
+            if len(msg.text) < 40:
                 detail = ' msg: ' + msg.text
             return 'text contain: ' + self.badText(msg.text) + detail
         return False # user name not set
