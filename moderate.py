@@ -34,7 +34,7 @@ def kick(msg, member):
 		for _ in range(2):
 			tele.kick_chat_member(msg.chat.id, member.id)
 	except Exception as e:
-		debug_group.send_message('kick failed: ' + str(e))
+		pass
 
 @log_on_fail(debug_group)
 def handleJoin(update, context):
