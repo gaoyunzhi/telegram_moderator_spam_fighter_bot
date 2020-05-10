@@ -29,6 +29,13 @@ def replyText(msg, text, timeout):
 	except:
 		pass
 
+def kick(msg, member):
+	try:
+		for _ in range(2):
+			tele.kick_chat_member(msg.chat.id, member.id)
+	except Exception as e:
+		debug_group.send_message('kick failed: ' + str(e))
+
 @log_on_fail(debug_group)
 def handleJoin(update, context):
 	msg = update.message
@@ -37,10 +44,7 @@ def handleJoin(update, context):
 		if db.shouldKick(member):
 			td.delete(msg, 0)
 			kicked = True
-			try:
-				tele.kick_chat_member(msg.chat.id, member.id)
-			except:
-				pass
+			kick(msg, memeber)
 	if not kicked:
 		td.delete(msg, 5)
 		greeting = gs.getGreeting(msg.chat_id)
@@ -107,10 +111,7 @@ def handleGroupInternal(msg):
 		chats.add(msg.chat.id)
 		handleAutoUnblock(chat = [msg.chat.id])
 	if db.shouldKick(msg.from_user):
-		try:
-			tele.kick_chat_member(msg.chat.id, msg.from_user.id)
-		except:
-			pass
+		kick(msg, msg.from_user)
 		td.delete(msg, 0)
 		return
 	if isAdminMsg(msg):
