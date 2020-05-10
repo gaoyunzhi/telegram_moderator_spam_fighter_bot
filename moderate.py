@@ -44,7 +44,7 @@ def handleJoin(update, context):
 		if db.shouldKick(member):
 			td.delete(msg, 0)
 			kicked = True
-			kick(msg, memeber)
+			kick(msg, member)
 	if not kicked:
 		td.delete(msg, 5)
 		greeting = gs.getGreeting(msg.chat_id)
