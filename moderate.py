@@ -26,9 +26,8 @@ gs = GroupSetting()
 def replyText(msg, text, timeout):
 	try:
 		return td.delete(msg.reply_text(text), timeout)
-	except Exception as e:
-		if str(e) != 'Reply message not found':
-			raise e
+	except:
+		pass
 
 @log_on_fail(debug_group)
 def handleJoin(update, context):
