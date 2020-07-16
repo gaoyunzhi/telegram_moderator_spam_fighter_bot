@@ -129,14 +129,12 @@ def handleGroupInternal(msg):
 			db.getPermission(msg.from_user), log_reason)
 
 def handleCommand(msg):
-	print(2)
 	if not msg.text or len(msg.text.split()) < 2:
 		return
 	command = msg.text.split()[0].lower()
 	text = msg.text.split()[1]
 	if not text:
 		return
-	print(3)
 	if command in ['rb', 'reducebadness']:
 		r = db.reduceBadness(text)
 		msg.chat.send_message(r)
@@ -144,7 +142,6 @@ def handleCommand(msg):
 		r = db.addBadness(text)
 		msg.chat.send_message(r)
 	if command in ['sb', 'setbadness']:
-		print(4)
 		r = db.setBadness(text, float(msg.text.split()[2]))
 		msg.chat.send_message(r)
 	if command in ['md', 'moderator_debug']:
@@ -152,7 +149,6 @@ def handleCommand(msg):
 		msg.chat.send_message('result: ' + str(r))
 
 def handleAdmin(msg):
-	print(1)
 	# TODO: check do I need to mute anyone? Why not just kick them?
 	if msg.text in ['mute', 'm']:
 		adminAction('MUTELIST', msg, 'mute')
