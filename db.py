@@ -1,22 +1,16 @@
-from telegram_util import matchKey, getDisplayUser, cnWordCount
+from telegram_util import matchKey, getDisplayUser, cnWordCount, isInt
 import yaml
 import os
-import threading
+import plain_db
 
 default_reason = '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。我们即将删除您这条发言，请注意保存。'
 
-def commit():
-    # see if I need to deal with race condition
-    command = 'git add . > /dev/null 2>&1 && git commit -m commit > /dev/null 2>&1 && git push -u -f > /dev/null 2>&1'
-    threading.Timer(60, lambda: os.system(command)).start()
+allowlist = plain_db.loadKeyOnlyDB('allowlist')
+blocklist = plain_db.loadDB('blocklist')
 
 def highRiskUsr(user):
-    try:
-        if int(user.first_name) > 10000:
-            return True
-    except:
-        pass
-    return False
+    name = user.first_name
+    return isInt(name) and int(name) > 10000
 
 def mediumRiskUsr(user):
     if user.username:
@@ -27,39 +21,6 @@ def mediumRiskUsr(user):
         (user.first_name in user.last_name):
         return True
     return False
-
-class GroupSetting(object):
-    def __init__(self):
-        with open('db/SETTING') as f:
-            content = yaml.load(f, Loader=yaml.FullLoader)
-        self.greeting = content.get('greeting', {})
-        self.disable_moderation = content.get('disable_moderation', [])
-
-    def getGreeting(self, chat_id):
-        return self.greeting.get(chat_id, '欢迎新朋友！新朋友请自我介绍~')
-
-    def setGreeting(self, chat_id, text):
-        self.greeting[chat_id] = text
-        self.save()
-
-    def setDisableModeration(self, chat_id, b):
-        if not b and chat_id in self.disable_moderation:
-            self.disable_moderation.remove(chat_id)
-        if b and not chat_id in self.disable_moderation:
-            self.disable_moderation.append(chat_id)
-            self.disable_moderation.sort()
-        self.save()
-
-    def isModerationDisabled(self, chat_id):
-        return chat_id in self.disable_moderation
-
-    def save(self):
-        with open('db/SETTING', 'w') as f:
-            f.write(yaml.dump({
-                'greeting': self.greeting, 
-                'disable_moderation': self.disable_moderation,
-            }, sort_keys=True, indent=2))
-        commit()
 
 class DB(object):
     lists = ['KICKLIST', 'WHITELIST']
@@ -88,28 +49,6 @@ class DB(object):
         with open('db/BLACKLIST', 'w') as f:
             f.write('\n'.join(lines))
         commit()
-
-    def reduceBadness(self, text):
-        text = text.strip()
-        if not text:
-            return 'no action'
-        text = text.lower()
-        if text not in self.BLACKLIST:
-            return 'no action'
-        self.BLACKLIST[text] -= 0.5
-        if self.BLACKLIST[text] < 0.01:
-            del self.BLACKLIST[text]
-        self.saveBlacklist()
-        return text + ' badness: ' + str(self.BLACKLIST.get(text, 0))
-
-    def addBadness(self, text):
-        text = text.strip()
-        if not text:
-            return 'no action'
-        text = text.lower()
-        self.BLACKLIST[text] = self.BLACKLIST.get(text, 0.0) + 0.5
-        self.saveBlacklist()
-        return text + ' badness: ' + str(self.BLACKLIST[text])
 
     def setBadness(self, text, weight):
         text = text.strip()
