@@ -42,7 +42,7 @@ def badTextScore(text):
     return sum(result.values()), result
 
 def badText(text):
-    score, result = self.badTextScore(text)
+    score, result = badTextScore(text)
     if score < 10:
         return
     return ' '.join(result.keys())
@@ -50,55 +50,55 @@ def badText(text):
 def shouldKick(user):
     if len(user.first_name or '') + len(user.last_name or '') > 40:
         return True
-    return self.badText(getDisplayUser(user))
+    return badText(getDisplayUser(user))
 
 def deleteReasons(msg):
     if not msg.text:
-        yield (5, None) # shouldn't be here
+        yield (5, None)
 
-    score, result = self.badTextScore(msg.text)
-    if score >= 1: # may need revisit
-        timeout = max(0, 7.5 / (2 ** score - 1) - 2.5) # 拍脑袋
-        yield (timeout, default_reason)
+    score, result = badTextScore(msg.text)
+    if score >= 10:
+        timeout = max(0, 7.5 / (0.2 ** score - 1) - 2.5) # 拍脑袋
+        yield (timeout, None)
     if score > 0:
         yield (60, None)
 
     if mediumRiskUsr(msg.from_user):
-        yield (20, '请先设置用户名再发言，麻烦您啦~ 我们将在20分钟后删除您这条发言，请注意保存。')
+        yield (20, None)
     if cnWordCount(msg.text) < 6:
         yield (60, None)
 
     yield (float('Inf'), None)
 
-    def shouldDelete(msg):
-        name = getDisplayUser(msg.from_user)
-        if matchKey(name, self.WHITELIST):
-            return float('Inf'), None
+def shouldDelete(msg):
+    name = getDisplayUser(msg.from_user)
+    if matchKey(name, allowlist):
+        return float('Inf'), None
 
-        # delete immediately
-        if highRiskUsr(msg.from_user):
-            return 0, default_reason
-        if msg.photo or msg.sticker or msg.video or msg.document:
-            return 0, '您暂时不可以发多媒体信息哦~ 已转交人工审核，审核通过会赋予您权限。'
-        if msg.forward_from or msg.forward_date:
-            return 0, '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
-        if cnWordCount(msg.text) < 2:
-            return 0, default_reason
+    # delete immediately
+    if highRiskUsr(msg.from_user):
+        return 0, default_reason
+    if msg.photo or msg.sticker or msg.video or msg.document:
+        return 0, '您暂时不可以发多媒体信息哦~ 已转交人工审核，审核通过会赋予您权限。'
+    if msg.forward_from or msg.forward_date:
+        return 0, '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
+    if cnWordCount(msg.text) < 2:
+        return 0, default_reason
 
-        return sorted(list(self.deleteReasons(msg)))[0]
+    return sorted(list(deleteReasons(msg)))[0]
 
     def getPermission(target):
         tid = str(target.id)
-        for l in self.lists:
+        for l in lists:
             if tid in getattr(l):
                 return l[0].lower()
 
     def record(mlist, target):
         tid = str(target.id)
-        for l in self.lists:
+        for l in lists:
             if l == mlist:
                 getattr(l).add(tid)
             else:
                 getattr(l).discard(tid)
-            self.saveFile(l)
+            saveFile(l)
         commit()
