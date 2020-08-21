@@ -1,3 +1,0 @@
-python-telegram-bot
-telegram_util
-pyyaml
