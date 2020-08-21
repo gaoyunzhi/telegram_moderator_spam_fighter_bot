@@ -3,7 +3,7 @@ import plain_db
 
 allowlist = plain_db.loadKeyOnlyDB('allowlist')
 kicklist = plain_db.loadKeyOnlyDB('kicklist')
-blocklist = plain_db.LargeDB('blocklist')
+blocklist = plain_db.LargeDB('blocklist', isIntValue=True)
 
 def mediumRiskUsr(user):
     if user.username:
