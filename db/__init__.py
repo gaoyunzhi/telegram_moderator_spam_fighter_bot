@@ -62,7 +62,7 @@ class GroupSetting(object):
         commit()
 
 class DB(object):
-    lists = ['KICKLIST', 'MUTELIST', 'WHITELIST']
+    lists = ['KICKLIST', 'WHITELIST']
 
     def readFile(self, filename):
         with open('db/' + filename) as f:
@@ -149,8 +149,6 @@ class DB(object):
             # good msg
             return False
         name = getDisplayUser(msg.from_user)
-        if matchKey(name, self.MUTELIST):
-            return False
         if msg.forward_from or msg.forward_date or not msg.text:
             return False
         if cnWordCount(msg.text) < 10 or self.badTextScore(msg.text)[0] > 2:
@@ -165,10 +163,6 @@ class DB(object):
     def shouldDeleteReasons(self, msg):
         if not msg.text:
             yield (5, None) # shouldn't be here
-
-        name = getDisplayUser(msg.from_user)
-        if matchKey(name, self.MUTELIST):
-            yield (5, '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。')
 
         score, result = self.badTextScore(msg.text)
         if score >= 1: # may need revisit
