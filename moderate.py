@@ -130,51 +130,21 @@ def handleCommand(msg):
 	text = msg.text.split()[1]
 	if not text:
 		return
-	if command in ['rb', 'reducebadness']:
-		r = db.reduceBadness(text)
-		msg.chat.send_message(r)
-	if command in ['ab', 'addbadness']:
-		r = db.addBadness(text)
-		msg.chat.send_message(r)
-	if command in ['sb', 'setbadness']:
+	if command in ['/abl', 'sb']:
 		r = db.setBadness(text, float(msg.text.split()[2]))
 		msg.chat.send_message(r)
-	if command in ['md', 'moderator_debug']:
+	if command in ['md', '/debug', '/md']:
 		r = db.badText(msg.text)
 		msg.chat.send_message('result: ' + str(r))
 
 def handleAdmin(msg):
-	# TODO: check do I need to mute anyone? Why not just kick them?
-	if msg.text in ['mute', 'm']:
-		adminAction('MUTELIST', msg, 'mute')
-	if msg.text in ['kick', 'k']:
+	if msg.text in ['m', 'k']:
 		adminAction('KICKLIST', msg, 'kick')
-	if msg.text in ['white', 'w']:  
+	if msg.text in ['w']:  
 		adminAction('WHITELIST', msg, 'whitelist')
-	if msg.text in ['reset', 'r']:  
+	if msg.text in ['r']:  
 		adminAction(None, msg, 'reset')
 	handleCommand(msg)
-
-def handleWildAdminInternal(msg):
-	if matchKey(msg.text, ['enable_moderation', 'em']):
-		gs.setDisableModeration(msg.chat_id, False)
-		return 'moderation enabled'
-	if matchKey(msg.text, ['disable_moderation', 'dm']):
-		gs.setDisableModeration(msg.chat_id, True)
-		return 'moderation disabled'
-	if matchKey(msg.text, ['set_greeting', 'sg']):
-		if msg.text.find(' ') != -1:
-			greeting = msg.text[msg.text.find(' '):].strip()
-		else:
-			greeting = ''
-		gs.setGreeting(msg.chat_id, greeting)
-		return 'greeting set to: ' + greeting
-
-def handleWildAdmin(msg):
-	r = handleWildAdminInternal(msg)
-	if r:
-		td.delete(msg.reply_text(r), 0.1)
-		msg.delete()
 
 @log_on_fail(debug_group)
 def handleGroup(update, context):
