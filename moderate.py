@@ -12,9 +12,7 @@ with open('CREDENTIALS') as f:
     credentials = yaml.load(f, Loader=yaml.FullLoader)
 
 updater = Updater(credentials['token'], use_context=True)
-bot = updater.bot
-bot_owner = credentials['owner']
-debug_group = bot.get_chat(bot_owner)
+debug_group = bot.get_chat(credentials['owner'])
 
 def replyText(msg, text, timeout):
 	try:
@@ -122,13 +120,17 @@ def handleGroup(update, context):
 
 	if msg.chat_id != debug_group.id:
 		handleGroupInternal(msg)
-
-	if msg.from_user.id == bot_owner:
+	
+	if msg.from_user.id == debug_group.id:
 		handleAdmin(msg)
 
 @log_on_fail(debug_group)
 def handlePrivate(update, context):
-	update.message.reply_text('Add me to groups and promote me as admin, I will do magic for you.')
+	msg = update.message
+	if msg.from_user.id == debug_group.id:
+		handleAdmin(msg)
+	else:
+		msg.reply_text('Add me to groups and promote me as admin, I will do magic for you.')
 
 def deleteMsgHandle(update, context):
 	update.message.delete()
