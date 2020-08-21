@@ -4,7 +4,7 @@
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, tryDelete, splitCommand
 import yaml
-from db import shouldKick, blocklist, whitelist
+from db import shouldKick, blocklist, whitelist, addBlocklist, badText
 
 td = TimedDeleter()
 
@@ -74,24 +74,26 @@ def adminAction(msg, action):
 
 def isAdminMsg(msg):
 	for admin in bot.get_chat_administrators(msg.chat_id):
-		if admin.user.id == msg.from_user.id and (admin.can_delete_messages or not admin.can_be_edited):
+		if admin.user.id == msg.from_user.id:
 			return True
 	return False
 
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
+	if isAdminMsg(msg):
+		return
 	if shouldKick(msg.from_user):
 		kick(msg, msg.from_user)
 		tryDelete(msg)
 		return
-	if isAdminMsg(msg):
-		return
 
 	timeout, reason = shouldDelete(msg)
-	if timeout != float('Inf'):
-		if reason:
-			replyText(msg, reason, 0.2)
-		td.delete(msg, timeout)
+	if timeout == float('Inf'):
+		return
+
+	if reason:
+		replyText(msg, reason, 0.2)
+	td.delete(msg, timeout)
 
 def handleCommand(msg):
 	command, text = splitCommand(msg.text)
