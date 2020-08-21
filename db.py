@@ -50,6 +50,8 @@ def badText(text):
 def shouldKick(user):
     if len(user.first_name or '') + len(user.last_name or '') > 40:
         return True
+    if highRiskUsr(user):
+        return True
     return badText(getDisplayUser(user))
 
 def getTimeout(msg):
@@ -74,9 +76,6 @@ def shouldDelete(msg):
     name = getDisplayUser(msg.from_user)
     if matchKey(name, allowlist):
         return float('Inf'), None
-
-    if highRiskUsr(msg.from_user):
-        return 0, None
     if msg.photo or msg.sticker or msg.video or msg.document:
         return 0, '非常抱歉，本群不支持多媒体信息。'
     if msg.forward_from or msg.forward_date:

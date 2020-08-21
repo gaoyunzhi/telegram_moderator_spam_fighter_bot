@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from telegram.ext import Updater, MessageHandler, Filters
-from telegram import ChatPermissions
-from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, matchKey
+from botgram.ext import Updater, MessageHandler, Filters
+from botgram import ChatPermissions
+from botgram_util import getDisplayUser, log_on_fail, TimedDeleter, matchKey, tryDelete
 import yaml
-from db import DB, GroupSetting
-from record_delete import recordDelete
+from db import shouldKick
 
 unblock_requests = {}
 chats = set()
 td = TimedDeleter()
 
 with open('CREDENTIALS') as f:
-    CREDENTIALS = yaml.load(f, Loader=yaml.FullLoader)
+    credentials = yaml.load(f, Loader=yaml.FullLoader)
 
-updater = Updater(CREDENTIALS['token'], use_context=True)
-tele = updater.bot
-debug_group = tele.get_chat(-1001198682178)
-this_bot = tele.id
-BOT_OWNER = CREDENTIALS['owner']
+updater = Updater(credentials['token'], use_context=True)
+bot = updater.bot
+bot_owner = credentials['owner']
+debug_group = bot.get_chat(bot_owner)
 db = DB()
 gs = GroupSetting()
 
@@ -32,17 +30,17 @@ def replyText(msg, text, timeout):
 def kick(msg, member):
 	try:
 		for _ in range(2):
-			tele.kick_chat_member(msg.chat.id, member.id)
+			bot.kick_chat_member(msg.chat.id, member.id)
 	except Exception as e:
-		pass
+		...
 
 @log_on_fail(debug_group)
 def handleJoin(update, context):
 	msg = update.message
 	kicked = False
 	for member in msg.new_chat_members:
-		if db.shouldKick(member):
-			td.delete(msg, 0)
+		if shouldKick(member):
+			tryDelete(msg)
 			kicked = True
 			kick(msg, member)
 	if not kicked:
@@ -65,7 +63,7 @@ def adminAction(db_action, msg, display_action):
 	target = getAdminActionTarget(msg)
 	if not target or not target.id:
 		return
-	db.record(db_action, target)
+	record(db_action, target)
 	if msg.chat_id != debug_group.id:
 		if db_action == 'KICKLIST':
 			msg.reply_to_message.delete()
@@ -76,48 +74,28 @@ def adminAction(db_action, msg, display_action):
 		text=getDisplayUser(target) + ': ' + display_action,
 		parse_mode='Markdown')
 
-@log_on_fail(debug_group)
-def handleAutoUnblock(usr = None, chat = None):
-	global unblock_requests
-	global chats
-	p = ChatPermissions(
-		can_send_messages=True, 
-		can_send_media_messages=True, 
-		can_send_polls=True, 
-		can_add_web_page_previews=True)
-	for u in (usr or unblock_requests.keys()):
-		for c in (chat or chats):
-			try:
-				r = tele.restrict_chat_member(c, u, p)
-			except:
-				pass
-
 def isAdminMsg(msg):
-	for admin in tele.get_chat_administrators(msg.chat_id):
+	for admin in bot.get_chat_administrators(msg.chat_id):
 		if admin.user.id == msg.from_user.id and (admin.can_delete_messages or not admin.can_be_edited):
 			return True
 	return False
 
 def containBotOwnerAsAdmin(msg):
-	for admin in tele.get_chat_administrators(msg.chat_id):
-		if admin.user.id == BOT_OWNER:
+	for admin in bot.get_chat_administrators(msg.chat_id):
+		if admin.user.id == bot_owner:
 			return True
 	return False
 
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
-	global chats
-	if not msg.chat.id in chats:
-		chats.add(msg.chat.id)
-		handleAutoUnblock(chat = [msg.chat.id])
-	if db.shouldKick(msg.from_user):
+	if shouldKick(msg.from_user):
 		kick(msg, msg.from_user)
 		td.delete(msg, 0)
 		return
 	if isAdminMsg(msg):
 		return
 
-	timeout, reason = db.shouldDelete(msg)
+	timeout, reason = shouldDelete(msg)
 	if timeout != float('Inf'):
 		if reason:
 			replyText(msg, reason, 1)
@@ -131,10 +109,10 @@ def handleCommand(msg):
 	if not text:
 		return
 	if command in ['/abl', 'sb']:
-		r = db.setBadness(text, float(msg.text.split()[2]))
+		r = setBadness(text, float(msg.text.split()[2]))
 		msg.chat.send_message(r)
 	if command in ['md', '/debug', '/md']:
-		r = db.badText(msg.text)
+		r = badText(msg.text)
 		msg.chat.send_message('result: ' + str(r))
 
 def handleAdmin(msg):
@@ -159,7 +137,7 @@ def handleGroup(update, context):
 	if msg.text and msg.text.startswith('/m') and isAdminMsg(msg):
 		handleWildAdmin(msg)
 
-	if msg.from_user.id == BOT_OWNER:
+	if msg.from_user.id == bot_owner:
 		handleAdmin(msg)
 
 @log_on_fail(debug_group)
