@@ -67,7 +67,7 @@ def getTimeout(msg):
 def shouldDelete(msg):
     if str(msg.from_user.id) in allowlist.items():
         return float('Inf'), None
-    if msg.photo or msg.sticker or msg.video or msg.document:
+    if not msg.text:
         return 0, '非常抱歉，本群不支持多媒体信息。'
     if msg.forward_from or msg.forward_date:
         return 0, '非常抱歉，本群不支持转发信息。'
