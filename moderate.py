@@ -4,7 +4,7 @@
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, tryDelete, splitCommand
 import yaml
-from db import shouldKick, blocklist, allowlist, addBlocklist, badText
+from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete
 
 td = TimedDeleter()
 
