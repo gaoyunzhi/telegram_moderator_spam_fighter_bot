@@ -12,6 +12,7 @@ with open('CREDENTIALS') as f:
     credentials = yaml.load(f, Loader=yaml.FullLoader)
 
 updater = Updater(credentials['token'], use_context=True)
+bot = updater.bot
 debug_group = bot.get_chat(credentials['owner'])
 
 def replyText(msg, text, timeout):
