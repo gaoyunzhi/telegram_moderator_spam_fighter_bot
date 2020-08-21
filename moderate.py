@@ -2,13 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from telegram.ext import Updater, MessageHandler, Filters
-from telegram import ChatPermissions
-from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, matchKey, tryDelete, splitCommand
+from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, tryDelete, splitCommand
 import yaml
-from db import shouldKick
+from db import shouldKick, blocklist, whitelist
 
-unblock_requests = {}
-chats = set()
 td = TimedDeleter()
 
 with open('CREDENTIALS') as f:
@@ -18,8 +15,6 @@ updater = Updater(credentials['token'], use_context=True)
 bot = updater.bot
 bot_owner = credentials['owner']
 debug_group = bot.get_chat(bot_owner)
-db = DB()
-gs = GroupSetting()
 
 def replyText(msg, text, timeout):
 	try:
