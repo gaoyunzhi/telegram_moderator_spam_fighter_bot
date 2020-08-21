@@ -56,13 +56,14 @@ def adminAction(msg, action):
 	target = getAdminActionTarget(msg)
 	if not target or not target.id:
 		return
+	target_id = str(target.id)
 
-	kicklist.remove(target.id)
-	allowlist.remove(target.id)
+	kicklist.remove(target_id)
+	allowlist.remove(target_id)
 	if action == 'kick':
-		kicklist.add(target.id)
+		kicklist.add(target_id)
 	if action == 'whitelist':
-		allowlist.add(target.id)
+		allowlist.add(target_id)
 
 	if msg.chat_id != debug_group.id:
 		if action == 'kick':

@@ -1,17 +1,9 @@
 from telegram_util import matchKey, getDisplayUser, cnWordCount, isInt
-import yaml
-import os
 import plain_db
-
-default_reason = '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。我们即将删除您这条发言，请注意保存。'
 
 allowlist = plain_db.loadKeyOnlyDB('allowlist')
 kicklist = plain_db.loadKeyOnlyDB('kicklist')
 blocklist = plain_db.LargeDB('blocklist')
-
-def highRiskUsr(user):
-    name = user.first_name
-    return isInt(name) and int(name) > 10000
 
 def mediumRiskUsr(user):
     if user.username:
@@ -29,14 +21,14 @@ def addBlocklist(text):
         return 'no action'
     text = text.lower()
     blocklist.update(text, 6)
+    return 'success'
 
 def badTextScore(text):
-    if matchKey(text, allowlist.items()):
-        return 0, []
     if not text:
         return 0, []
     result = {}
-    for key, score in blocklist.items() + [(item, 10) for item in kicklist.items()]:
+    for key, score in blocklist.items() + [
+            (item, 10) for item in kicklist.items()]:
         if key.lower() in text.lower():
             result[key] = sore
     return sum(result.values()), result
@@ -48,16 +40,16 @@ def badText(text):
     return ' '.join(result.keys())
 
 def shouldKick(user):
-    if len(user.first_name or '') + len(user.last_name or '') > 40:
+    name = user.first_name
+    if isInt(name) and int(name) > 10000:
         return True
-    if highRiskUsr(user):
+    if len(name) + len(user.last_name or '') > 40:
         return True
     return badText(getDisplayUser(user))
 
 def getTimeout(msg):
     if not msg.text:
-        yield 5
-
+        yield 0
     score, result = badTextScore(msg.text)
     if score >= 10:
         timeout = max(0, 7.5 / (0.2 ** score - 1) - 2.5) # 拍脑袋
@@ -73,8 +65,7 @@ def getTimeout(msg):
     yield float('Inf')
 
 def shouldDelete(msg):
-    name = getDisplayUser(msg.from_user)
-    if matchKey(name, allowlist):
+    if str(msg.from_user.id) in allowlist.items():
         return float('Inf'), None
     if msg.photo or msg.sticker or msg.video or msg.document:
         return 0, '非常抱歉，本群不支持多媒体信息。'
