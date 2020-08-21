@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from botgram.ext import Updater, MessageHandler, Filters
-from botgram import ChatPermissions
-from botgram_util import getDisplayUser, log_on_fail, TimedDeleter, matchKey, tryDelete
+from telegram.ext import Updater, MessageHandler, Filters
+from telegram import ChatPermissions
+from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, matchKey, tryDelete, splitCommand
 import yaml
 from db import shouldKick
 
@@ -31,7 +31,7 @@ def kick(msg, member):
 	try:
 		for _ in range(2):
 			bot.kick_chat_member(msg.chat.id, member.id)
-	except Exception as e:
+	except:
 		...
 
 @log_on_fail(debug_group)
@@ -45,9 +45,7 @@ def handleJoin(update, context):
 			kick(msg, member)
 	if not kicked:
 		td.delete(msg, 5)
-		greeting = gs.getGreeting(msg.chat_id)
-		if greeting:
-			replyText(msg, greeting, 5)
+		replyText(msg, '欢迎新朋友！新朋友请自我介绍~', 5)
 
 def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
@@ -59,20 +57,25 @@ def getAdminActionTarget(msg):
 		return msg.reply_to_message.from_user
 	return msg.reply_to_message.forward_from
 
-def adminAction(db_action, msg, display_action):
+def adminAction(msg, action):
 	target = getAdminActionTarget(msg)
 	if not target or not target.id:
 		return
-	record(db_action, target)
+
+	kicklist.remove(target.id)
+	allowlist.remove(target.id)
+	if action == 'kick':
+		kicklist.add(target.id)
+	if action == 'whitelist':
+		allowlist.add(target.id)
+
 	if msg.chat_id != debug_group.id:
-		if db_action == 'KICKLIST':
+		if action == 'kick':
 			msg.reply_to_message.delete()
-		r = msg.chat.send_message('-')
-		r.delete()
+		msg.chat.send_message('-').delete()
 		msg.delete()
 	debug_group.send_message(
-		text=getDisplayUser(target) + ': ' + display_action,
-		parse_mode='Markdown')
+		text=getDisplayUser(target) + ': ' + action, parse_mode='Markdown')
 
 def isAdminMsg(msg):
 	for admin in bot.get_chat_administrators(msg.chat_id):
@@ -80,17 +83,11 @@ def isAdminMsg(msg):
 			return True
 	return False
 
-def containBotOwnerAsAdmin(msg):
-	for admin in bot.get_chat_administrators(msg.chat_id):
-		if admin.user.id == bot_owner:
-			return True
-	return False
-
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
 	if shouldKick(msg.from_user):
 		kick(msg, msg.from_user)
-		td.delete(msg, 0)
+		tryDelete(msg)
 		return
 	if isAdminMsg(msg):
 		return
@@ -98,30 +95,25 @@ def handleGroupInternal(msg):
 	timeout, reason = shouldDelete(msg)
 	if timeout != float('Inf'):
 		if reason:
-			replyText(msg, reason, 1)
+			replyText(msg, reason, 0.2)
 		td.delete(msg, timeout)
 
 def handleCommand(msg):
-	if not msg.text or len(msg.text.split()) < 2:
-		return
-	command = msg.text.split()[0].lower()
-	text = msg.text.split()[1]
+	command, text = splitCommand(msg.text)
 	if not text:
 		return
 	if command in ['/abl', 'sb']:
-		r = setBadness(text, float(msg.text.split()[2]))
-		msg.chat.send_message(r)
+		msg.chat.send_message(addBlocklist(text))
 	if command in ['md', '/debug', '/md']:
-		r = badText(msg.text)
-		msg.chat.send_message('result: ' + str(r))
+		msg.chat.send_message('result: ' + str(badText(msg.text)))
 
 def handleAdmin(msg):
 	if msg.text in ['m', 'k']:
-		adminAction('KICKLIST', msg, 'kick')
+		adminAction(msg, 'kick')
 	if msg.text in ['w']:  
-		adminAction('WHITELIST', msg, 'whitelist')
+		adminAction(msg, 'whitelist')
 	if msg.text in ['r']:  
-		adminAction(None, msg, 'reset')
+		adminAction(msg, 'reset')
 	handleCommand(msg)
 
 @log_on_fail(debug_group)
@@ -130,27 +122,15 @@ def handleGroup(update, context):
 	if not msg:
 		return
 
-	if msg.chat_id != debug_group.id and \
-		not gs.isModerationDisabled(msg.chat_id):
+	if msg.chat_id != debug_group.id:
 		handleGroupInternal(msg)
-
-	if msg.text and msg.text.startswith('/m') and isAdminMsg(msg):
-		handleWildAdmin(msg)
 
 	if msg.from_user.id == bot_owner:
 		handleAdmin(msg)
 
 @log_on_fail(debug_group)
 def handlePrivate(update, context):
-	global unblock_requests
-	update.message.reply_text(
-		'''For group owner, Add me to groups and promote me as admin, I will do magic for you. 
-
-For group member requesting unblock, your request has recieved.''')
-	usr = update.effective_user
-	if usr.id not in unblock_requests:
-		unblock_requests[usr.id] = usr
-		handleAutoUnblock(usr = [usr.id])
+	update.message.reply_text('Add me to groups and promote me as admin, I will do magic for you.')
 
 def deleteMsgHandle(update, context):
 	update.message.delete()

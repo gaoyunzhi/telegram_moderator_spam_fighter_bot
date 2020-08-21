@@ -23,7 +23,7 @@ def mediumRiskUsr(user):
         return True
     return False
 
-def addBlacklist(text):
+def addBlocklist(text):
     text = text.strip()
     if not text or len(text) < 2:
         return 'no action'
