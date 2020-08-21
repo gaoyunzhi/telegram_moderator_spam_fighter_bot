@@ -4,7 +4,7 @@
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, tryDelete, splitCommand
 import yaml
-from db import shouldKick, blocklist, whitelist, addBlocklist, badText
+from db import shouldKick, blocklist, allowlist, addBlocklist, badText
 
 td = TimedDeleter()
 
@@ -62,7 +62,7 @@ def adminAction(msg, action):
 	allowlist.remove(target_id)
 	if action == 'kick':
 		kicklist.add(target_id)
-	if action == 'whitelist':
+	if action == 'allowlist':
 		allowlist.add(target_id)
 
 	if msg.chat_id != debug_group.id:
@@ -109,7 +109,7 @@ def handleAdmin(msg):
 	if msg.text in ['m', 'k']:
 		adminAction(msg, 'kick')
 	if msg.text in ['w']:  
-		adminAction(msg, 'whitelist')
+		adminAction(msg, 'allowlist')
 	if msg.text in ['r']:  
 		adminAction(msg, 'reset')
 	handleCommand(msg)
