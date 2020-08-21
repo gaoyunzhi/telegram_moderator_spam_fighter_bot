@@ -36,8 +36,8 @@ def handleJoin(update, context):
 	for member in msg.new_chat_members:
 		if shouldKick(member):
 			tryDelete(msg)
-			kicked = True
 			kick(msg, member)
+			kicked = True
 	if not kicked:
 		td.delete(msg, 5)
 		replyText(msg, '欢迎新朋友！新朋友请自我介绍~', 5)
