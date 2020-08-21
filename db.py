@@ -6,7 +6,7 @@ import plain_db
 default_reason = '非常抱歉，机器人暂时无法判定您的消息，已转交人工审核。我们即将删除您这条发言，请注意保存。'
 
 allowlist = plain_db.loadKeyOnlyDB('allowlist')
-allowlist = plain_db.loadKeyOnlyDB('kicklist')
+kicklist = plain_db.loadKeyOnlyDB('kicklist')
 blocklist = plain_db.LargeDB('blocklist')
 
 def highRiskUsr(user):
@@ -52,53 +52,37 @@ def shouldKick(user):
         return True
     return badText(getDisplayUser(user))
 
-def deleteReasons(msg):
+def getTimeout(msg):
     if not msg.text:
-        yield (5, None)
+        yield 5
 
     score, result = badTextScore(msg.text)
     if score >= 10:
         timeout = max(0, 7.5 / (0.2 ** score - 1) - 2.5) # 拍脑袋
-        yield (timeout, None)
+        yield timeout
     if score > 0:
-        yield (60, None)
+        yield 60
 
     if mediumRiskUsr(msg.from_user):
-        yield (20, None)
+        yield 20
     if cnWordCount(msg.text) < 6:
-        yield (60, None)
+        yield 60
 
-    yield (float('Inf'), None)
+    yield float('Inf')
 
 def shouldDelete(msg):
     name = getDisplayUser(msg.from_user)
     if matchKey(name, allowlist):
         return float('Inf'), None
 
-    # delete immediately
     if highRiskUsr(msg.from_user):
-        return 0, default_reason
+        return 0, None
     if msg.photo or msg.sticker or msg.video or msg.document:
-        return 0, '您暂时不可以发多媒体信息哦~ 已转交人工审核，审核通过会赋予您权限。'
+        return 0, '非常抱歉，本群不支持多媒体信息。'
     if msg.forward_from or msg.forward_date:
-        return 0, '您暂时不可以转发信息哦~ 已转交人工审核，审核通过会赋予您权限。'
+        return 0, '非常抱歉，本群不支持转发信息。'
     if cnWordCount(msg.text) < 2:
-        return 0, default_reason
-
-    return sorted(list(deleteReasons(msg)))[0]
-
-    def getPermission(target):
-        tid = str(target.id)
-        for l in lists:
-            if tid in getattr(l):
-                return l[0].lower()
-
-    def record(mlist, target):
-        tid = str(target.id)
-        for l in lists:
-            if l == mlist:
-                getattr(l).add(tid)
-            else:
-                getattr(l).discard(tid)
-            saveFile(l)
-        commit()
+        if len(msg.text) > 20:
+            return 0, None
+        return 20, None
+    return sorted(list(getTimeout(msg)))[0], None

@@ -123,11 +123,6 @@ def handleGroupInternal(msg):
 			replyText(msg, reason, 1)
 		td.delete(msg, timeout)
 
-	log_reason = db.shouldLog(msg)
-	if log_reason and containBotOwnerAsAdmin(msg):
-		recordDelete(msg, debug_group, tele, 
-			db.getPermission(msg.from_user), log_reason)
-
 def handleCommand(msg):
 	if not msg.text or len(msg.text.split()) < 2:
 		return
