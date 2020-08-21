@@ -30,7 +30,7 @@ def badTextScore(text):
     for key, score in blocklist.items() + [
             (item, 10) for item in kicklist.items()]:
         if key.lower() in text.lower():
-            result[key] = sore
+            result[key] = score
     return sum(result.values()), result
 
 def badText(text):
