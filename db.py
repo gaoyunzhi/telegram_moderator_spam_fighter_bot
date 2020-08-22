@@ -72,7 +72,7 @@ def shouldDelete(msg):
     if msg.forward_from or msg.forward_date:
         return 0, '非常抱歉，本群不支持转发信息。'
     if cnWordCount(msg.text) < 2:
-        if len(msg.text) > 20:
+        if len(msg.text) > 10:
             return 0, None
         return 20, None
     return sorted(list(getTimeout(msg)))[0], None
