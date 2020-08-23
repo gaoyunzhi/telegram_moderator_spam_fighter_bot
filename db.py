@@ -48,11 +48,9 @@ def shouldKick(user):
     return badText(getDisplayUser(user))
 
 def getTimeout(msg):
-    if not msg.text:
-        yield 0
     score, result = badTextScore(msg.text)
     if score >= 10:
-        timeout = max(0, 7.5 / (0.2 ** score - 1) - 2.5) # 拍脑袋
+        timeout = max(0, 7.5 / (0.2 * score - 1) - 2.5) # 拍脑袋
         yield timeout
     if score > 0:
         yield 60
