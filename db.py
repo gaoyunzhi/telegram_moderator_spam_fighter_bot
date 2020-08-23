@@ -56,7 +56,7 @@ def getTimeout(msg):
         yield 60
 
     if mediumRiskUsr(msg.from_user):
-        yield 20
+        yield 120
     if cnWordCount(msg.text) < 6:
         yield 60
 
