@@ -5,14 +5,6 @@ allowlist = plain_db.loadKeyOnlyDB('allowlist')
 kicklist = plain_db.loadKeyOnlyDB('kicklist')
 blocklist = plain_db.LargeDB('blocklist', isIntValue=True)
 
-def mediumRiskUsr(user):
-    if user.username:
-        return False
-    if (user.last_name in user.first_name) or \
-        (user.first_name in user.last_name):
-        return True
-    return False
-
 def addBlocklist(text):
     text = text.strip()
     if not text or len(text) < 2:
@@ -52,9 +44,6 @@ def getTimeout(msg):
         yield timeout
     if score > 0:
         yield 60
-
-    if mediumRiskUsr(msg.from_user):
-        yield 120
     if cnWordCount(msg.text) < 6:
         yield 60
 
