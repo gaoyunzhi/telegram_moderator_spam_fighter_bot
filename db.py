@@ -8,8 +8,6 @@ blocklist = plain_db.LargeDB('blocklist', isIntValue=True)
 def mediumRiskUsr(user):
     if user.username:
         return False
-    if not user.last_name:
-        return True
     if (user.last_name in user.first_name) or \
         (user.first_name in user.last_name):
         return True
