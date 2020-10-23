@@ -124,7 +124,7 @@ def handleGroup(update, context):
 	if msg.chat_id != debug_group.id:
 		handleGroupInternal(msg)
 	
-	if msg.from_user.id in [debug_group.id, 1087968824] # group anonymous bot
+	if msg.from_user.id in [debug_group.id, 1087968824]: # group anonymous bot
 		handleAdmin(msg)
 
 @log_on_fail(debug_group)
