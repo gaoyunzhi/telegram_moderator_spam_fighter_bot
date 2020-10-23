@@ -73,6 +73,8 @@ def adminAction(msg, action):
 		text=getDisplayUser(target) + ': ' + action, parse_mode='Markdown')
 
 def isAdminMsg(msg):
+	if msg.from_user.id < 0:
+		return True
 	for admin in bot.get_chat_administrators(msg.chat_id):
 		if admin.user.id == msg.from_user.id:
 			return True
