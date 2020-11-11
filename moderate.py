@@ -74,12 +74,14 @@ def isAdminMsg(msg):
 @log_on_fail(debug_group)
 def log(msg):
 	msg.forward(debug_group.id)
-	debug_group.send_message('id: %d, user: %d, chat: %s, post_link: %s' % (
+	debug_group.send_message('id: %d, user: %s, chat: %s, post_link: %s' % (
 		msg.from_user.id, getDisplayUser(msg.from_user), 
 		getDisplayChat(msg.chat), msg.link or ''), parse_mode='Markdown')
 
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
+	time.sleep(5)
+	print(msg)
 	log(msg)
 	if isAdminMsg(msg):
 		return
