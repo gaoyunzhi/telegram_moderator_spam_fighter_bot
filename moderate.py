@@ -84,8 +84,8 @@ def log(msg):
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
 	if msg.from_user.id == 777000: # telegram channel auto forward
-		return 
-	print(msg)
+		return
+	# see if we need a manual sleep to slow down the message flow
 	log(msg)
 	if isAdminMsg(msg):
 		return
@@ -111,7 +111,10 @@ def handleCommand(msg):
 	if command in ['md', '/debug', '/md']:
 		msg.chat.send_message('result: ' + str(badText(msg.text)))
 
-def handleAdmin(msg):
+def handleAdmin(update, context):
+	msg = update.effective_message
+	if not msg or msg.chat.id != debug_group.id:
+		return
 	if msg.text in ['m', 'k']:
 		adminAction(msg, 'kick')
 	if msg.text in ['w']:  
@@ -125,11 +128,7 @@ def handleGroup(update, context):
 	msg = update.effective_message
 	if not msg:
 		return
-
-	if msg.chat_id == debug_group.id:
-		handleAdmin(msg)
-	else:
-		handleGroupInternal(msg)
+	handleGroupInternal(msg)
 
 def deleteMsgHandle(update, context):
 	update.message.delete()
@@ -140,6 +139,7 @@ dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, deleteMsgH
 dp.add_handler(MessageHandler(Filters.group & \
 		(~ Filters.status_update.left_chat_member) & \
 		(~ Filters.status_update.new_chat_members), handleGroup), group = 3)
+dp.add_handler(MessageHandler(Filters.channel, handleAdmin), group = 4)
 
 updater.start_polling()
 updater.idle()
