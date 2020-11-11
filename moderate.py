@@ -60,8 +60,9 @@ def adminAction(msg, action):
 
 	display_user = getDisplayUserHtml(target) if target else str(target_id)
 
-	msg.reply(
+	msg.reply_text(
 		text=display_user + ': ' + action, parse_mode='HTML')
+	msg.delete()
 
 def isAdminMsg(msg):
 	if msg.from_user.id < 0:
