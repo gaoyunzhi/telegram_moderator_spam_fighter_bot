@@ -76,9 +76,10 @@ def log(msg):
 	msg.forward(debug_group.id)
 	print(msg.from_user.id, getDisplayUser(msg.from_user), 
 		getDisplayChat(msg.chat), msg.link or '')
-	debug_group.send_message('id: %d, user: %s, chat: %s, post_link: %s' % (
+	debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
 		msg.from_user.id, getDisplayUser(msg.from_user), 
-		getDisplayChat(msg.chat), msg.link or ''), parse_mode='Markdown')
+		getDisplayChat(msg.chat), msg.link or ''), 
+		parse_mode='Markdown', disable_web_page_preview=True)
 
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
