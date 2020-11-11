@@ -42,10 +42,13 @@ def handleJoin(update, context):
 def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
 		return
-	return int(msg.text.split()[1][:-1])
+	for item in msg.reply_to_message.entities:
+		if item['type'] == 'text_mention':
+			return item.user.id, item.user
+	return int(msg.text.split()[1][:-1]), None
 
 def adminAction(msg, action):
-	target_id = getAdminActionTarget(msg)
+	target_id, target = getAdminActionTarget(msg)
 	if not target_id:
 		return
 	kicklist.remove(target_id)
@@ -55,8 +58,10 @@ def adminAction(msg, action):
 	if action == 'allowlist':
 		allowlist.add(target_id)
 
+	display_user = getDisplayUser(target) if target else str(target_id)
+
 	msg.reply(
-		text=getDisplayUser(target) + ': ' + action, parse_mode='Markdown')
+		text=display_user + ': ' + action, parse_mode='Markdown')
 
 def isAdminMsg(msg):
 	if msg.from_user.id < 0:
