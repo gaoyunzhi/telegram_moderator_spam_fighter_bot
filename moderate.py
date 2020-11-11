@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from telegram.ext import Updater, MessageHandler, Filters
-from telegram_util import getDisplayUser, getDisplayChat, log_on_fail, TimedDeleter, tryDelete, splitCommand
+from telegram_util import getDisplayUserHtml, getDisplayChatHtml, log_on_fail, TimedDeleter, tryDelete, splitCommand
 from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete
 
 td = TimedDeleter()
@@ -58,10 +58,10 @@ def adminAction(msg, action):
 	if action == 'allowlist':
 		allowlist.add(target_id)
 
-	display_user = getDisplayUser(target) if target else str(target_id)
+	display_user = getDisplayUserHtml(target) if target else str(target_id)
 
 	msg.reply(
-		text=display_user + ': ' + action, parse_mode='Markdown')
+		text=display_user + ': ' + action, parse_mode='HTML')
 
 def isAdminMsg(msg):
 	if msg.from_user.id < 0:
@@ -74,12 +74,12 @@ def isAdminMsg(msg):
 @log_on_fail(debug_group)
 def log(msg):
 	msg.forward(debug_group.id)
-	print(msg.from_user.id, getDisplayUser(msg.from_user), 
-		getDisplayChat(msg.chat), msg.link or '')
+	print(msg.from_user.id, getDisplayUserHtml(msg.from_user), 
+		getDisplayChatHtml(msg.chat), msg.link or '')
 	debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
-		msg.from_user.id, getDisplayUser(msg.from_user), 
-		getDisplayChat(msg.chat), msg.link or ''), 
-		parse_mode='Markdown', disable_web_page_preview=True)
+		msg.from_user.id, getDisplayUserHtml(msg.from_user), 
+		getDisplayChatHtml(msg.chat), msg.link or ''), 
+		parse_mode='HTML', disable_web_page_preview=True)
 
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
