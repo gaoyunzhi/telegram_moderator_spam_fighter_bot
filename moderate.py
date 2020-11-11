@@ -139,7 +139,7 @@ dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, deleteMsgH
 dp.add_handler(MessageHandler(Filters.group & \
 		(~ Filters.status_update.left_chat_member) & \
 		(~ Filters.status_update.new_chat_members), handleGroup), group = 3)
-dp.add_handler(MessageHandler(Filters.channel, handleAdmin), group = 4)
+dp.add_handler(MessageHandler(Filters.update.channel_posts, handleAdmin), group = 4)
 
 updater.start_polling()
 updater.idle()
