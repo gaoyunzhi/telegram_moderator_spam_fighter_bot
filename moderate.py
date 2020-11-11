@@ -75,8 +75,6 @@ def isAdminMsg(msg):
 @log_on_fail(debug_group)
 def log(msg):
 	msg.forward(debug_group.id)
-	print(msg.from_user.id, getDisplayUserHtml(msg.from_user), 
-		getDisplayChatHtml(msg.chat), msg.link or '')
 	debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
 		msg.from_user.id, getDisplayUserHtml(msg.from_user), 
 		getDisplayChatHtml(msg.chat), msg.link or ''), 
