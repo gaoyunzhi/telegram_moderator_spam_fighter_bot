@@ -85,9 +85,6 @@ def log(msg):
 def handleGroupInternal(msg):
 	if msg.from_user.id == 777000: # telegram channel auto forward
 		return 
-	# debug 
-	import time
-	time.sleep(5)
 	print(msg)
 	log(msg)
 	if isAdminMsg(msg):
@@ -103,7 +100,7 @@ def handleGroupInternal(msg):
 		return
 	replyText(msg, '非常抱歉，本群不支持转发，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
 	td.delete(msg, timeout)
-	debug_group.send_message('scheduled delete in %d minute', int(timeout))
+	debug_group.send_message('scheduled delete in %d minute' % int(timeout))
 
 def handleCommand(msg):
 	command, text = splitCommand(msg.text)
