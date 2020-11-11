@@ -42,22 +42,17 @@ def getTimeout(msg):
     if score >= 10:
         timeout = max(0, 7.5 / (0.2 * score - 1) - 2.5) # 拍脑袋
         yield timeout
-    if score > 0:
-        yield 60
-    if cnWordCount(msg.text) < 6:
-        yield 60
-
     yield float('Inf')
 
 def shouldDelete(msg):
     if str(msg.from_user.id) in allowlist.items():
-        return float('Inf'), None
+        return float('Inf')
     if not msg.text:
-        return 0, '非常抱歉，本群不支持多媒体信息。'
+        return 0
     if msg.forward_from or msg.forward_date:
-        return 0, '非常抱歉，本群不支持转发信息。'
+        return 0
     if cnWordCount(msg.text) < 2:
         if len(msg.text) > 10:
-            return 0, None
-        return 20, None
-    return sorted(list(getTimeout(msg)))[0], None
+            return 0
+        return 20
+    return sorted(list(getTimeout(msg)))[0]

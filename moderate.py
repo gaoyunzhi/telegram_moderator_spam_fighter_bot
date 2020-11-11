@@ -2,18 +2,16 @@
 # -*- coding: utf-8 -*-
 
 from telegram.ext import Updater, MessageHandler, Filters
-from telegram_util import getDisplayUser, log_on_fail, TimedDeleter, tryDelete, splitCommand
-import yaml
+from telegram_util import getDisplayUser, getDisplayChat, log_on_fail, TimedDeleter, tryDelete, splitCommand
 from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete
 
 td = TimedDeleter()
 
-with open('CREDENTIALS') as f:
-    credentials = yaml.load(f, Loader=yaml.FullLoader)
+with open('token') as f:
+    updater = Updater(f.read().strip(), use_context=True)
 
-updater = Updater(credentials['token'], use_context=True)
 bot = updater.bot
-debug_group = bot.get_chat(credentials['owner'])
+debug_group = bot.get_chat(-1001263616539)
 
 def replyText(msg, text, timeout):
 	try:
@@ -44,19 +42,12 @@ def handleJoin(update, context):
 def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
 		return
-	for item in msg.reply_to_message.entities:
-		if item['type'] == 'text_mention':
-			return item.user
-	if msg.chat_id != debug_group.id:
-		return msg.reply_to_message.from_user
-	return msg.reply_to_message.forward_from
+	return int(msg.text.split()[1][:-1])
 
 def adminAction(msg, action):
-	target = getAdminActionTarget(msg)
-	if not target or not target.id:
+	target_id = getAdminActionTarget(msg)
+	if not target_id:
 		return
-	target_id = str(target.id)
-
 	kicklist.remove(target_id)
 	allowlist.remove(target_id)
 	if action == 'kick':
@@ -64,12 +55,7 @@ def adminAction(msg, action):
 	if action == 'allowlist':
 		allowlist.add(target_id)
 
-	if msg.chat_id != debug_group.id:
-		if action == 'kick':
-			msg.reply_to_message.delete()
-		msg.chat.send_message('-').delete()
-		msg.delete()
-	debug_group.send_message(
+	msg.reply(
 		text=getDisplayUser(target) + ': ' + action, parse_mode='Markdown')
 
 def isAdminMsg(msg):
@@ -81,21 +67,29 @@ def isAdminMsg(msg):
 	return False
 
 @log_on_fail(debug_group)
+def log(msg):
+	msg.forward(debug_group.id)
+	debug_group.send_message('id: %d, user: %d, chat: %s, post_link: %s' % (
+		msg.from_user.id, getDisplayUser(msg.from_user), 
+		getDisplayChat(msg.chat), msg.link or ''), parse_mode='Markdown')
+
+@log_on_fail(debug_group)
 def handleGroupInternal(msg):
+	log(msg)
 	if isAdminMsg(msg):
 		return
 	if shouldKick(msg.from_user):
 		kick(msg, msg.from_user)
 		tryDelete(msg)
+		debug_group.send_message('from user known to be bad, user kicked, message deleted.')
 		return
 
-	timeout, reason = shouldDelete(msg)
+	timeout = shouldDelete(msg)
 	if timeout == float('Inf'):
 		return
-
-	if reason:
-		replyText(msg, reason, 0.2)
+	replyText(msg, '非常抱歉，本群不支持转发，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
 	td.delete(msg, timeout)
+	debug_group.send_message('scheduled delete in %d minute', int(timeout))
 
 def handleCommand(msg):
 	command, text = splitCommand(msg.text)
@@ -121,19 +115,10 @@ def handleGroup(update, context):
 	if not msg:
 		return
 
-	if msg.chat_id != debug_group.id:
-		handleGroupInternal(msg)
-	
-	if msg.from_user.id in [debug_group.id, 1087968824]: # group anonymous bot
-		handleAdmin(msg)
-
-@log_on_fail(debug_group)
-def handlePrivate(update, context):
-	msg = update.message
-	if msg.from_user.id == debug_group.id:
+	if msg.chat_id == debug_group.id:
 		handleAdmin(msg)
 	else:
-		msg.reply_text('Add me to groups and promote me as admin, I will do magic for you.')
+		handleGroupInternal(msg)
 
 def deleteMsgHandle(update, context):
 	update.message.delete()
@@ -144,7 +129,6 @@ dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, deleteMsgH
 dp.add_handler(MessageHandler(Filters.group & \
 		(~ Filters.status_update.left_chat_member) & \
 		(~ Filters.status_update.new_chat_members), handleGroup), group = 3)
-dp.add_handler(MessageHandler(Filters.private, handlePrivate), group = 4)
 
 updater.start_polling()
 updater.idle()
