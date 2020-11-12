@@ -90,7 +90,8 @@ def handleGroupInternal(msg):
 	if shouldKick(msg.from_user):
 		kick(msg, msg.from_user)
 		tryDelete(msg)
-		debug_group.send_message('from user known to be bad, user kicked, message deleted.')
+		debug_log.edit(debug_log.text_html + 'from user known to be bad, user kicked, message deleted.',
+			parse_mode='HTML', disable_web_page_preview=True)
 		return
 
 	timeout = shouldDelete(msg)
