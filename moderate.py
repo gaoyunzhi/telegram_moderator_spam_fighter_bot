@@ -60,9 +60,8 @@ def adminAction(msg, action):
 
 	display_user = getDisplayUserHtml(target) if target else str(target_id)
 
-	msg.reply_text(
+	msg.edit_text(
 		text=display_user + ': ' + action, parse_mode='HTML')
-	msg.delete()
 
 def isAdminMsg(msg):
 	if msg.from_user.id < 0:
@@ -75,17 +74,17 @@ def isAdminMsg(msg):
 @log_on_fail(debug_group)
 def log(msg):
 	msg.forward(debug_group.id)
-	debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
+	return debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
 		msg.from_user.id, getDisplayUserHtml(msg.from_user), 
 		getDisplayChatHtml(msg.chat), msg.link or ''), 
 		parse_mode='HTML', disable_web_page_preview=True)
 
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
-	if msg.from_user.id == 777000: # telegram channel auto forward
+	if msg.from_user.id in [777000, 420074357]: # telegram channel auto forward, owner
 		return
 	# see if we need a manual sleep to slow down the message flow
-	log(msg)
+	debug_log = log(msg)
 	if isAdminMsg(msg):
 		return
 	if shouldKick(msg.from_user):
@@ -97,9 +96,10 @@ def handleGroupInternal(msg):
 	timeout = shouldDelete(msg)
 	if timeout == float('Inf'):
 		return
-	replyText(msg, '非常抱歉，本群不支持转发，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
+	replyText(msg, '非常抱歉，本群不支持转发与多媒体信息，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
 	td.delete(msg, timeout)
-	debug_group.send_message('scheduled delete in %d minute' % int(timeout))
+	debug_log.edit(debug_log.text_html + ' scheduled delete in %d minute' % int(timeout),
+			parse_mode='HTML', disable_web_page_preview=True)
 
 def handleCommand(msg):
 	command, text = splitCommand(msg.text)
