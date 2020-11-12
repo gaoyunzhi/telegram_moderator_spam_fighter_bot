@@ -43,7 +43,8 @@ def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
 		return
 	for item in msg.reply_to_message.entities:
-		if item['type'] == 'text_mention':
+		print(item.user)
+		if item['type'] == 'text_mention' and item.user:
 			return item.user.id, item.user
 	return int(msg.text.split()[1][:-1]), None
 
