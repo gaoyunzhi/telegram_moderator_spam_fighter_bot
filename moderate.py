@@ -43,10 +43,9 @@ def getAdminActionTarget(msg):
 	if not msg.reply_to_message:
 		return
 	for item in msg.reply_to_message.entities:
-		print(item.user)
-		if item['type'] == 'text_mention' and item.user:
+		if item['type'] == 'text_mention':
 			return item.user.id, item.user
-	return int(msg.text.split()[1][:-1]), None
+	return int(msg.reply_to_message.text.split()[1][:-1]), None
 
 def adminAction(msg, action):
 	target_id, target = getAdminActionTarget(msg)
@@ -111,6 +110,7 @@ def handleCommand(msg):
 	if command in ['md', '/debug', '/md']:
 		msg.chat.send_message('result: ' + str(badText(msg.text)))
 
+@log_on_fail(debug_group)
 def handleAdmin(update, context):
 	msg = update.effective_message
 	if not msg or msg.chat.id != debug_group.id:
