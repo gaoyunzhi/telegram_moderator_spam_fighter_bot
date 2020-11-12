@@ -71,7 +71,6 @@ def isAdminMsg(msg):
 			return True
 	return False
 
-@log_on_fail(debug_group)
 def log(msg):
 	msg.forward(debug_group.id)
 	return debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
@@ -85,7 +84,6 @@ def handleGroupInternal(msg):
 		return
 	# see if we need a manual sleep to slow down the message flow
 	debug_log = log(msg)
-	print(debug_log)
 	if isAdminMsg(msg):
 		return
 	if shouldKick(msg.from_user):
