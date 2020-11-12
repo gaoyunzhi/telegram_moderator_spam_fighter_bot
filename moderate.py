@@ -85,6 +85,7 @@ def handleGroupInternal(msg):
 		return
 	# see if we need a manual sleep to slow down the message flow
 	debug_log = log(msg)
+	print(debug_log)
 	if isAdminMsg(msg):
 		return
 	if shouldKick(msg.from_user):
