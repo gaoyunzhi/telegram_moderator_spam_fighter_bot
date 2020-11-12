@@ -71,6 +71,7 @@ def isAdminMsg(msg):
 			return True
 	return False
 
+@log_on_fail(debug_group)
 def log(msg):
 	msg.forward(debug_group.id)
 	return debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
@@ -89,7 +90,7 @@ def handleGroupInternal(msg):
 	if shouldKick(msg.from_user):
 		kick(msg, msg.from_user)
 		tryDelete(msg)
-		debug_log.edit(debug_log.text_html + 'from user known to be bad, user kicked, message deleted.',
+		debug_log.edit_text(debug_log.text_html + 'from user known to be bad, user kicked, message deleted.',
 			parse_mode='HTML', disable_web_page_preview=True)
 		return
 
@@ -98,7 +99,7 @@ def handleGroupInternal(msg):
 		return
 	replyText(msg, '非常抱歉，本群不支持转发与多媒体信息，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
 	td.delete(msg, timeout)
-	debug_log.edit(debug_log.text_html + ' scheduled delete in %d minute' % int(timeout),
+	debug_log.edit_text(debug_log.text_html + ' scheduled delete in %d minute' % int(timeout),
 			parse_mode='HTML', disable_web_page_preview=True)
 
 def handleCommand(msg):
