@@ -66,8 +66,8 @@ def adminAction(msg, action):
 def getBlockKeys(msg):
 	if not msg:
 		return []
-	print(msg)
-	to_block = [msg.forward_sender_name]
+	to_block = [msg.forward_sender_name, 
+		msg.forward_from and msg.forward_from.id]
 	forward_channel = msg.forward_from_chat
 	if forward_channel:
 		to_block.append(forward_channel.id)
@@ -75,6 +75,7 @@ def getBlockKeys(msg):
 		to_block.append(forward_channel.username)
 	for photo in (msg.photo or []):
 		to_block.append(photo.file_unique_id)
+	to_block.append(msg.video and msg.video.file_unique_id)
 	return [str(item) for item in to_block if item]
 
 def forwardBlock(msg):
@@ -92,20 +93,30 @@ def isAdminMsg(msg):
 			return True
 	return False
 
+def shouldSkipOrigLog(msg):
+	return (set(getBlockKeys(msg) + [str(msg.from_user.id)]) &
+		set(forward_block.items()))
+
 @log_on_fail(debug_group)
 def log(msg):
-	try:
-		msg.forward(debug_group.id)
-	except:
-		...
-	return debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
-		msg.from_user.id, getDisplayUserHtml(msg.from_user), 
-		getDisplayChatHtml(msg.chat), msg.link or ''), 
+	should_skip_orig_log = shouldSkipOrigLog(msg)
+	if should_skip_orig_log:
+		tail = (', msg known bad, skip log: ' + ' '.join(should_log_orig) + 
+			', cap: ' + msg.caption[:50])
+	else:
+		tail = ''
+		try:
+			msg.forward(debug_group.id)
+		except:
+			...
+	return debug_group.send_message('id: %d, user: %s, chat: %s, link: %s%s' % (
+		msg.from_user.id, getDisplayUserHtml(msg.from_user),
+		getDisplayChatHtml(msg.chat), msg.link or '', tail), 
 		parse_mode='HTML', disable_web_page_preview=True)
 
 @log_on_fail(debug_group)
 def handleGroupInternal(msg):
-	if msg.from_user.id in [777000, 420074357]: # telegram channel auto forward, owner
+	if msg.from_user.id in [777000, 420074357, 1088415958, 1066746613]: # telegram channel auto forward, owner, 文学部, moth lib
 		return
 	# see if we need a manual sleep to slow down the message flow
 	debug_log = log(msg)
