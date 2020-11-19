@@ -66,6 +66,7 @@ def adminAction(msg, action):
 def getBlockKeys(msg):
 	if not msg:
 		return []
+	print(msg)
 	to_block = [msg.forward_sender_name]
 	forward_channel = msg.forward_from_chat
 	if forward_channel:
