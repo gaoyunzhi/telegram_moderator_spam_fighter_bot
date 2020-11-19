@@ -74,7 +74,7 @@ def getBlockKeys(msg):
 		to_block.append(forward_channel.username)
 	for photo in (msg.photo or []):
 		to_block.append(photo.file_unique_id)
-	return [item for item in to_block if item]
+	return [str(item) for item in to_block if item]
 
 def forwardBlock(msg):
 	orig_msg = msg.reply_to_message
@@ -93,7 +93,10 @@ def isAdminMsg(msg):
 
 @log_on_fail(debug_group)
 def log(msg):
-	msg.forward(debug_group.id)
+	try:
+		msg.forward(debug_group.id)
+	except:
+		...
 	return debug_group.send_message('id: %d, user: %s, chat: %s, link: %s' % (
 		msg.from_user.id, getDisplayUserHtml(msg.from_user), 
 		getDisplayChatHtml(msg.chat), msg.link or ''), 
