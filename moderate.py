@@ -3,7 +3,7 @@
 
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram_util import getDisplayUserHtml, getDisplayChatHtml, log_on_fail, TimedDeleter, tryDelete, splitCommand
-from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete
+from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete, forward_block
 
 td = TimedDeleter()
 
@@ -63,6 +63,26 @@ def adminAction(msg, action):
 	msg.edit_text(
 		text=display_user + ': ' + action, parse_mode='HTML')
 
+def getBlockKeys(msg):
+	if not msg:
+		return []
+	to_block = [msg.forward_sender_name]
+	forward_channel = msg.forward_from_chat
+	if forward_channel:
+		to_block.append(forward_channel.id)
+		to_block.append(forward_channel.title)
+		to_block.append(forward_channel.username)
+	for photo in (msg.photo or []):
+		to_block.append(photo.file_unique_id)
+	return [item for item in to_block if item]
+
+def forwardBlock(msg):
+	orig_msg = msg.reply_to_message
+	keys = getBlockKeys(orig_msg)
+	for key in keys:
+		forward_block.add(key)
+	msg.edit_text('blocked forward keys: ' + ' '.join(keys))
+	
 def isAdminMsg(msg):
 	if msg.from_user.id < 0:
 		return True
@@ -122,6 +142,8 @@ def handleAdmin(update, context):
 		adminAction(msg, 'allowlist')
 	if msg.text in ['r']:  
 		adminAction(msg, 'reset')
+	if msg.text in ['b']:
+		forwardBlock(msg)
 	handleCommand(msg)
 
 @log_on_fail(debug_group)
