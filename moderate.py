@@ -100,7 +100,7 @@ def log(msg):
 	should_skip_orig_log = shouldSkipOrigLog(msg)
 	if should_skip_orig_log:
 		tail = (', msg known bad, skip log: ' + ' '.join(should_skip_orig_log) + 
-			', cap: ' + (msg.caption or 'None')[:50])
+			', cap: ' + (msg.caption or msg.text or 'None')[:50])
 	else:
 		tail = ''
 		try:
