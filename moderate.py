@@ -66,8 +66,7 @@ def adminAction(msg, action):
 def getBlockKeys(msg):
 	if not msg:
 		return []
-	to_block = [msg.forward_sender_name, 
-		msg.forward_from and msg.forward_from.id]
+	to_block = []
 	forward_channel = msg.forward_from_chat
 	if forward_channel:
 		to_block.append(forward_channel.id)
@@ -94,15 +93,14 @@ def isAdminMsg(msg):
 	return False
 
 def shouldSkipOrigLog(msg):
-	return (set(getBlockKeys(msg) + [str(msg.from_user.id)]) &
-		set(forward_block.items()))
+	return set(getBlockKeys(msg)) & set(forward_block.items())
 
 @log_on_fail(debug_group)
 def log(msg):
 	should_skip_orig_log = shouldSkipOrigLog(msg)
 	if should_skip_orig_log:
 		tail = (', msg known bad, skip log: ' + ' '.join(should_skip_orig_log) + 
-			', cap: ' + msg.caption[:50])
+			', cap: ' + (msg.caption or 'None')[:50])
 	else:
 		tail = ''
 		try:
