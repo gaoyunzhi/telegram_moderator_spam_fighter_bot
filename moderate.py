@@ -93,7 +93,7 @@ def getRawLogInfo(msg):
 	info.id = msg.from_user.id
 	info.user = getDisplayUserHtml(msg.from_user)
 	info.chat = '<a href="%s">%s</a>' % (msg.link, msg.chat.title)
-	info.text = msg.caption_html or msg.text_html
+	info.text = msg.caption_html or msg.text_html or ''
 	if msg.photo:
 		info.size = msg.photo[-1].file_size
 	if msg.video:
@@ -104,6 +104,7 @@ def getRawLogInfo(msg):
 
 def isSimilarLog(log1, log2):
 	if log1.size == log2.size and log2.size > 10:
+		print('log1.size', log1.size)
 		return True
 	if log1.text == log2.text and len(log2.text) > 10:
 		return True
