@@ -145,19 +145,18 @@ def getDisplayLogInfo(log_info, other_logs):
 	if log_info.delete == 0:
 		display += ', deleted'
 	elif log_info.delete != float('Inf'):
-		display += ', schedule delete in %d minute' % log_info.delete
+		display += ', scheduled delete in %d minute' % log_info.delete
 	return display
 
 @log_on_fail(debug_group)
-def log(log_info):
+def log(log_info, msg):
 	similar_logs = getSimilarLogs(log_info)
 	logs = []
-	if msg:
-		try:
-			logs.append(msg.forward(debug_group.id))
-		except:
-			...
-	logs.append(debug_group.send_message('\n'.join(getDisplayLogInfo(log_info, similar_logs))
+	try:
+		logs.append(msg.forward(debug_group.id))
+	except:
+		...
+	logs.append(debug_group.send_message(getDisplayLogInfo(log_info, similar_logs),
 		parse_mode='HTML', disable_web_page_preview=True))
 	recent_logs.append((log_info, time.time(), logs))
 
@@ -207,7 +206,7 @@ def handleGroup(update, context):
 		return
 	if msg.from_user.id in [777000, 420074357, 1087968824, 1088415958, 1066746613]: # telegram channel auto forward, owner, group anonymous bot, 文学部, moth lib
 		return
-	log(handleGroupInternal(msg))
+	log(handleGroupInternal(msg), msg)
 	
 def deleteMsgHandle(update, context):
 	update.message.delete()
