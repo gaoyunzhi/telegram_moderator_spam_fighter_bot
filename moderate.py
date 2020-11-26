@@ -14,7 +14,7 @@ with open('token') as f:
 bot = updater.bot
 debug_group = bot.get_chat(-1001263616539)
 
-recent_logs = {}
+recent_logs = []
 
 class LogInfo(object):
 	def __init__(self):
@@ -69,7 +69,7 @@ def adminAction(msg, action):
 	targets = getAdminActionTargets(msg)
 	if not targets:
 		return
-	for taget_id in targets:
+	for target_id in targets:
 		kicklist.remove(target_id)
 		allowlist.remove(target_id)
 		if action == 'kick':
@@ -112,13 +112,11 @@ def isSimilarLog(log1, log2):
 def getSimilarLogs(log_info):
 	global recent_logs
 	recent_logs = [recent_log for recent_log in recent_logs if recent_log[1] > time.time() - 60 * 60]
-	new_recent_logs = []
 	other_ids = set()
 	other_users = set()
 	other_chats = set()
 	for recent_log_info, timestemp, old_logs in recent_logs:
 		if not isSimilarLog(recent_log_info, log_info):
-			new_recent_logs.append((recent_log_info, timestemp, old_logs))
 			continue
 		for old_log in old_logs:
 			other_ids.add(recent_log_info.id)
@@ -128,7 +126,6 @@ def getSimilarLogs(log_info):
 				old_log.delete()
 			except:
 				...
-	recent_logs = new_recent_logs
 	other_ids.discard(log_info.id)
 	other_users.discard(log_info.user)
 	other_chats.discard(log_info.chat)
