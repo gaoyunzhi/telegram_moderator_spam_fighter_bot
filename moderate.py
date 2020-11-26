@@ -59,10 +59,13 @@ def getAdminActionTargets(msg):
 	for item in msg.reply_to_message.entities:
 		if item['type'] == 'text_mention':
 			result[item.user.id] = item.user
-	for uid in msg.reply_to_message.text.split(',')[0].split()[1:]:
-		uid = int(uid)
-		if uid not in result:
-			result[uid] = None
+	try:
+		for uid in msg.reply_to_message.text.split(',')[0].split()[1:]:
+			uid = int(uid)
+			if uid not in result:
+				result[uid] = None
+	except:
+		...
 	return result
 
 def adminAction(msg, action):
