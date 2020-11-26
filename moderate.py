@@ -107,7 +107,6 @@ def getRawLogInfo(msg):
 
 def isSimilarLog(log1, log2):
 	if log1.size == log2.size and log2.size > 10:
-		print('log1.size', log1.size)
 		return True
 	if log1.text == log2.text and len(log2.text) > 10:
 		return True
