@@ -149,13 +149,8 @@ def getDisplayLogInfo(log_info, other_logs):
 	return display
 
 @log_on_fail(debug_group)
-def log(log_info, msg):
+def log(log_info, msg, logs):
 	similar_logs = getSimilarLogs(log_info)
-	logs = []
-	try:
-		logs.append(msg.forward(debug_group.id))
-	except:
-		...
 	logs.append(debug_group.send_message(getDisplayLogInfo(log_info, similar_logs),
 		parse_mode='HTML', disable_web_page_preview=True))
 	recent_logs.append((log_info, time.time(), logs))
@@ -206,7 +201,12 @@ def handleGroup(update, context):
 		return
 	if msg.from_user.id in [777000, 420074357, 1087968824, 1088415958, 1066746613]: # telegram channel auto forward, owner, group anonymous bot, 文学部, moth lib
 		return
-	log(handleGroupInternal(msg), msg)
+	logs = []
+	try:
+		logs.append(msg.forward(debug_group.id))
+	except:
+		...
+	log(handleGroupInternal(msg), msg, logs)
 	
 def deleteMsgHandle(update, context):
 	update.message.delete()
