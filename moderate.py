@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from telegram.ext import Updater, MessageHandler, Filters
-from telegram_util import getDisplayUserHtml, getDisplayChatHtml, log_on_fail, TimedDeleter, tryDelete, splitCommand
-from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete, forward_block
+from telegram_util import getDisplayUserHtml, log_on_fail, TimedDeleter, tryDelete, splitCommand
+from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete
 
 td = TimedDeleter()
 
@@ -12,6 +12,17 @@ with open('token') as f:
 
 bot = updater.bot
 debug_group = bot.get_chat(-1001263616539)
+
+class LogInfo(object):
+	def __init__(self):
+		self.id = 0
+		self.size = 0
+		self.text = ''
+		self.user = ''
+		self.chat = ''
+		self.text = 'None'
+		self.kicked = False
+		self.delete = float('Inf')
 
 def replyText(msg, text, timeout):
 	try:
@@ -62,27 +73,6 @@ def adminAction(msg, action):
 
 	msg.edit_text(
 		text=display_user + ': ' + action, parse_mode='HTML')
-
-def getBlockKeys(msg):
-	if not msg:
-		return []
-	to_block = []
-	forward_channel = msg.forward_from_chat
-	if forward_channel:
-		to_block.append(forward_channel.id)
-		to_block.append(forward_channel.title)
-		to_block.append(forward_channel.username)
-	for photo in (msg.photo or []):
-		to_block.append(photo.file_unique_id)
-	to_block.append(msg.video and msg.video.file_unique_id)
-	return [str(item) for item in to_block if item]
-
-def forwardBlock(msg):
-	orig_msg = msg.reply_to_message
-	keys = getBlockKeys(orig_msg)
-	for key in keys:
-		forward_block.add(key)
-	msg.edit_text('blocked forward keys: ' + ' '.join(keys))
 	
 def isAdminMsg(msg):
 	if msg.from_user.id < 0:
@@ -92,48 +82,30 @@ def isAdminMsg(msg):
 			return True
 	return False
 
-def shouldSkipOrigLog(msg):
-	return set(getBlockKeys(msg)) & set(forward_block.items())
+def getRawLogInfo(msg):
+	info = LogInfo()
+	info.id = msg.from_user.id,
+	info.user = getDisplayUserHtml(msg.from_user),
+	info.chat = '<a href="%s">%s</a>' % (msg.link, msg.chat.title)
+	info.text = msg.caption_html or msg.text_html or 'None'
+	if msg.photo:
+		info.size = msg.photo[-1].file_size
+	if msg.video:
+		info.size = msg.video.file_size
+	if msg.document:
+		info.size = msg.document.file_size
+	return info
 
 @log_on_fail(debug_group)
-def log(msg):
-	should_skip_orig_log = shouldSkipOrigLog(msg)
-	if should_skip_orig_log:
-		tail = (', msg known bad, skip log: ' + ' '.join(should_skip_orig_log) + 
-			', cap: ' + (msg.caption or msg.text or 'None')[:50])
-	else:
-		tail = ''
+def log(log_info):
+	# let's see if logs can be combined
+	if msg:
 		try:
 			msg.forward(debug_group.id)
 		except:
 			...
-	return debug_group.send_message('id: %d, user: %s, chat: %s, link: %s%s' % (
-		msg.from_user.id, getDisplayUserHtml(msg.from_user),
-		getDisplayChatHtml(msg.chat), msg.link or '', tail), 
+	debug_group.send_message('\n'.join([key + ': ' + str(value) for key, value in log_info.items()])
 		parse_mode='HTML', disable_web_page_preview=True)
-
-@log_on_fail(debug_group)
-def handleGroupInternal(msg):
-	if msg.from_user.id in [777000, 420074357, 1088415958, 1066746613]: # telegram channel auto forward, owner, 文学部, moth lib
-		return
-	# see if we need a manual sleep to slow down the message flow
-	debug_log = log(msg)
-	if isAdminMsg(msg):
-		return
-	if shouldKick(msg.from_user):
-		kick(msg, msg.from_user)
-		tryDelete(msg)
-		debug_log.edit_text(debug_log.text_html + ', from user known to be bad, user kicked, message deleted.',
-			parse_mode='HTML', disable_web_page_preview=True)
-		return
-
-	timeout = shouldDelete(msg)
-	if timeout == float('Inf'):
-		return
-	replyText(msg, '非常抱歉，本群不支持转发与多媒体信息，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
-	td.delete(msg, timeout)
-	debug_log.edit_text(debug_log.text_html + ', scheduled delete in %d minute' % int(timeout),
-			parse_mode='HTML', disable_web_page_preview=True)
 
 def handleCommand(msg):
 	command, text = splitCommand(msg.text)
@@ -155,17 +127,34 @@ def handleAdmin(update, context):
 		adminAction(msg, 'allowlist')
 	if msg.text in ['r']:  
 		adminAction(msg, 'reset')
-	if msg.text in ['b']:
-		forwardBlock(msg)
 	handleCommand(msg)
+
+def handleGroupInternal(msg):
+	log_info = getRawLogInfo(msg)
+	if isAdminMsg(msg):
+		return log_info
+	if shouldKick(msg.from_user):
+		kick(msg, msg.from_user)
+		tryDelete(msg)
+		log_info.kicked = True
+		return log_info
+	timeout = shouldDelete(msg)
+	if timeout == float('Inf'):
+		return log_info
+	replyText(msg, '非常抱歉，本群不支持转发与多媒体信息，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
+	td.delete(msg, timeout)
+	log_info.delete = int(timeout)
+	return log_info
 
 @log_on_fail(debug_group)
 def handleGroup(update, context):
 	msg = update.effective_message
 	if not msg:
 		return
-	handleGroupInternal(msg)
-
+	if msg.from_user.id in [777000, 420074357, 1087968824, 1088415958, 1066746613]: # telegram channel auto forward, owner, group anonymous bot, 文学部, moth lib
+		return
+	log(handleGroupInternal(msg))
+	
 def deleteMsgHandle(update, context):
 	update.message.delete()
 

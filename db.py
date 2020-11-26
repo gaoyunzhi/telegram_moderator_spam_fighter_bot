@@ -4,7 +4,6 @@ import plain_db
 allowlist = plain_db.loadKeyOnlyDB('allowlist')
 kicklist = plain_db.loadKeyOnlyDB('kicklist')
 blocklist = plain_db.LargeDB('blocklist', isIntValue=True)
-forward_block = plain_db.loadKeyOnlyDB('forward_block')
 
 def addBlocklist(text):
     text = text.strip()
