@@ -52,29 +52,33 @@ def handleJoin(update, context):
 		td.delete(msg, 5)
 		replyText(msg, '欢迎新朋友！新朋友请自我介绍~', 5)
 
-def getAdminActionTarget(msg):
+def getAdminActionTargets(msg):
 	if not msg.reply_to_message:
-		return
+		return {}
+	result = {}
 	for item in msg.reply_to_message.entities:
 		if item['type'] == 'text_mention':
-			return item.user.id, item.user
-	return int(msg.reply_to_message.text.split()[1][:-1]), None
+			result[item.user.id] = item.user
+	for uid in msg.reply_to_message.text.split(',')[0].split()[1:]:
+		uid = int(uid)
+		if uid not in result:
+			result[uid] = None
+	return result
 
 def adminAction(msg, action):
-	target_id, target = getAdminActionTarget(msg)
-	if not target_id:
+	targets = getAdminActionTargets(msg)
+	if not targets:
 		return
-	kicklist.remove(target_id)
-	allowlist.remove(target_id)
-	if action == 'kick':
-		kicklist.add(target_id)
-	if action == 'allowlist':
-		allowlist.add(target_id)
+	for taget_id in targets:
+		kicklist.remove(target_id)
+		allowlist.remove(target_id)
+		if action == 'kick':
+			kicklist.add(target_id)
+		if action == 'allowlist':
+			allowlist.add(target_id)
 
-	display_user = getDisplayUserHtml(target) if target else str(target_id)
-
-	msg.edit_text(
-		text=display_user + ': ' + action, parse_mode='HTML')
+	display_user = [getDisplayUserHtml(targets[uid]) if targets[uid] else str(uid) for uid in targets]
+	msg.edit_text(text=' '.join(display_user) + ': ' + action, parse_mode='HTML')
 	
 def isAdminMsg(msg):
 	if msg.from_user.id < 0:
@@ -135,7 +139,7 @@ def getDisplayLogInfo(log_info, other_logs):
 	users = [log_info.user] + list(other_logs[1])
 	chats = [log_info.chat] + list(other_logs[2])
 	display = 'id: %s, user: %s, chat: %s' % (
-		' '.join(ids), ' '.join(users), ' '.join(chats))
+		' '.join([str(uid) for uid in ids]), ' '.join(users), ' '.join(chats))
 	if log_info.kicked:
 		display += ', kicked'
 	if log_info.delete == 0:
