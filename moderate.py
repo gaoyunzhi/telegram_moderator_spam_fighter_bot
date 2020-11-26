@@ -90,8 +90,8 @@ def isAdminMsg(msg):
 
 def getRawLogInfo(msg):
 	info = LogInfo()
-	info.id = msg.from_user.id,
-	info.user = getDisplayUserHtml(msg.from_user),
+	info.id = msg.from_user.id
+	info.user = getDisplayUserHtml(msg.from_user)
 	info.chat = '<a href="%s">%s</a>' % (msg.link, msg.chat.title)
 	info.text = msg.caption_html or msg.text_html
 	if msg.photo:
@@ -114,25 +114,25 @@ def getSimilarLogs(log_info):
 	recent_logs = [recent_log for recent_log in recent_logs if recent_log[1] > time.time() - 60 * 60]
 	new_recent_logs = []
 	other_ids = set()
-	other_chats = set()
 	other_users = set()
+	other_chats = set()
 	for recent_log_info, timestemp, old_logs in recent_logs:
 		if not isSimilarLog(recent_log_info, log_info):
 			new_recent_logs.append((recent_log_info, timestemp, old_logs))
 			continue
 		for old_log in old_logs:
 			other_ids.add(recent_log_info.id)
-			other_chats.add(recent_log_info.chat)
 			other_users.add(recent_log_info.user)
+			other_chats.add(recent_log_info.chat)
 			try:
 				old_log.delete()
 			except:
 				...
 	recent_logs = new_recent_logs
 	other_ids.discard(log_info.id)
-	other_chats.discard(log_info.chat)
 	other_users.discard(log_info.user)
-	return other_ids, other_chats, other_users
+	other_chats.discard(log_info.chat)
+	return other_ids, other_users, other_chats
 
 def getDisplayLogInfo(log_info, other_logs):
 	ids = [log_info.id] + list(other_logs[0])
