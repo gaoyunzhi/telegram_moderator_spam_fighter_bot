@@ -151,6 +151,8 @@ def getDisplayLogInfo(log_info, other_logs):
 @log_on_fail(debug_group)
 def log(log_info, msg, logs):
 	similar_logs = getSimilarLogs(log_info)
+	if recent_logs and recent_logs[-1][1] > time.time() - 10:
+		time.sleep(10)
 	logs.append(debug_group.send_message(getDisplayLogInfo(log_info, similar_logs),
 		parse_mode='HTML', disable_web_page_preview=True))
 	recent_logs.append((log_info, time.time(), logs))
