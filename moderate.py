@@ -3,7 +3,7 @@
 
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram_util import getDisplayUserHtml, log_on_fail, TimedDeleter, tryDelete, splitCommand
-from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete
+from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete, veryBadMsg
 import time
 
 td = TimedDeleter()
@@ -15,6 +15,7 @@ bot = updater.bot
 debug_group = bot.get_chat(-1001263616539)
 
 recent_logs = []
+new_users = set()
 
 class LogInfo(object):
 	def __init__(self):
@@ -44,6 +45,7 @@ def handleJoin(update, context):
 	msg = update.message
 	kicked = False
 	for member in msg.new_chat_members:
+		new_users.add(member.id)
 		if shouldKick(member):
 			tryDelete(msg)
 			kick(msg, member)
@@ -190,6 +192,11 @@ def handleGroupInternal(msg):
 		return log_info
 	timeout = shouldDelete(msg)
 	if timeout == float('Inf'):
+		return log_info
+	if timeout == 0 and msg.from_user.id in new_users and veryBadMsg(msg):
+		kick(msg, msg.from_user)
+		tryDelete(msg)
+		log_info.kicked = True
 		return log_info
 	replyText(msg, '非常抱歉，本群不支持转发与多媒体信息，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
 	td.delete(msg, timeout)
