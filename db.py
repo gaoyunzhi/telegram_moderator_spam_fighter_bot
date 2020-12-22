@@ -62,7 +62,7 @@ def veryBadMsg(msg):
         '新闻频道', '新闻网', '我的频道', '点我有惊喜', '引流推广', 
         '自由之声🌈', '业务咨询']:
         return True
-    if ((not msg.from_user.lastname) and (not msg.from_user.username) 
-        and len(msg.from_user.firstname) == 3):
+    if ((not msg.from_user.last_name) and (not msg.from_user.username) 
+        and len(msg.from_user.first_name) == 3):
         return True
     return False
