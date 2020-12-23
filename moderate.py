@@ -16,7 +16,7 @@ bot = updater.bot
 debug_group = bot.get_chat(-1001263616539)
 
 recent_logs = []
-new_users = set()
+high_risk_users = set()
 
 class LogInfo(object):
 	def __init__(self):
@@ -50,7 +50,7 @@ def handleJoin(update, context):
 	msg = update.message
 	kicked = False
 	for member in msg.new_chat_members:
-		new_users.add(member.id)
+		high_risk_users.add(member.id)
 		if shouldKick(member):
 			tryDelete(msg)
 			kick(msg, member)
@@ -198,7 +198,9 @@ def handleGroupInternal(msg):
 	timeout = shouldDelete(msg)
 	if timeout == float('Inf'):
 		return log_info
-	if timeout == 0 and msg.from_user.id in new_users and veryBadMsg(msg):
+	if veryBadMsg(msg):
+		high_risk_users.add(msg.from_user.id)
+	if timeout == 0 and msg.from_user.id in high_risk_users and veryBadMsg(msg):
 		replyText(msg, '非常抱歉，您的信息被机器人认为有广告的嫌疑，已转交人工审核。审核通过后会归还您发言的权利。', 0.2)
 		tryDelete(msg)
 		log_info.kicked = 'muted'
