@@ -148,7 +148,7 @@ def getDisplayLogInfo(log_info, other_logs):
 	display = 'id: %s, user: %s, chat: %s' % (
 		' '.join([str(uid) for uid in ids]), ' '.join(users), ' '.join(chats))
 	if log_info.kicked:
-		display += ', %s' + log_info.kicked
+		display += ', ' + log_info.kicked
 	if log_info.delete == 0:
 		display += ', deleted'
 	elif log_info.delete != float('Inf'):
@@ -199,8 +199,8 @@ def handleGroupInternal(msg):
 	if timeout == float('Inf'):
 		return log_info
 	if timeout == 0 and msg.from_user.id in new_users and veryBadMsg(msg):
-		tryDelete(msg)
 		replyText(msg, '非常抱歉，您的信息被机器人认为有广告的嫌疑，已转交人工审核。审核通过后会归还您发言的权利。', 0.2)
+		tryDelete(msg)
 		log_info.kicked = 'muted'
 		mute(msg)
 		return log_info
