@@ -42,7 +42,7 @@ def kick(msg, member):
 		...
 
 def mute(msg):
-	bot.restrict_chat_member(msg.chat, msg.from_user.id, 
+	bot.restrict_chat_member(msg.chat.id, msg.from_user.id, 
 		ChatPermissions(False, False, False, False, False, False, False, False))
 
 @log_on_fail(debug_group)
@@ -200,6 +200,7 @@ def handleGroupInternal(msg):
 		return log_info
 	if timeout == 0 and msg.from_user.id in new_users and veryBadMsg(msg):
 		tryDelete(msg)
+		replyText(msg, '非常抱歉，您的信息被机器人认为有广告的嫌疑，已转交人工审核。审核通过后会归还您发言的权利。', 0.2)
 		log_info.kicked = 'muted'
 		mute(msg)
 		return log_info
