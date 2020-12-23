@@ -3,6 +3,7 @@
 
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram_util import getDisplayUserHtml, log_on_fail, TimedDeleter, tryDelete, splitCommand
+from telegram import ChatPermissions
 from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete, veryBadMsg
 import time
 
@@ -24,7 +25,7 @@ class LogInfo(object):
 		self.text = ''
 		self.user = ''
 		self.chat = ''
-		self.kicked = False
+		self.kicked = ''
 		self.delete = float('Inf')
 
 def replyText(msg, text, timeout):
@@ -39,6 +40,10 @@ def kick(msg, member):
 			bot.kick_chat_member(msg.chat.id, member.id)
 	except:
 		...
+
+def mute(msg):
+	bot.restrict_chat_member(msg.chat, msg.from_user.id, 
+		ChatPermissions(False, False, False, False, False, False, False, False))
 
 @log_on_fail(debug_group)
 def handleJoin(update, context):
@@ -143,7 +148,7 @@ def getDisplayLogInfo(log_info, other_logs):
 	display = 'id: %s, user: %s, chat: %s' % (
 		' '.join([str(uid) for uid in ids]), ' '.join(users), ' '.join(chats))
 	if log_info.kicked:
-		display += ', kicked'
+		display += ', %s' + log_info.kicked
 	if log_info.delete == 0:
 		display += ', deleted'
 	elif log_info.delete != float('Inf'):
@@ -188,15 +193,15 @@ def handleGroupInternal(msg):
 	if shouldKick(msg.from_user):
 		kick(msg, msg.from_user)
 		tryDelete(msg)
-		log_info.kicked = True
+		log_info.kicked = 'kicked'
 		return log_info
 	timeout = shouldDelete(msg)
 	if timeout == float('Inf'):
 		return log_info
 	if timeout == 0 and msg.from_user.id in new_users and veryBadMsg(msg):
-		kick(msg, msg.from_user)
 		tryDelete(msg)
-		log_info.kicked = True
+		log_info.kicked = 'muted'
+		mute(msg)
 		return log_info
 	replyText(msg, '非常抱歉，本群不支持转发与多媒体信息，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
 	td.delete(msg, timeout)
