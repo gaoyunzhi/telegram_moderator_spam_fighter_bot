@@ -232,7 +232,7 @@ if __name__ == '__main__':
 	for user_id in kicklist.items():
 		try:
 			bot.get_user_profile_photos(user_id)
-			time.sleep(1)
+			time.sleep(0.05)
 		except Exception as e:
 			print(user_id, str(e))
 			kicklist.remove(user_id)
