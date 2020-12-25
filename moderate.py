@@ -4,7 +4,7 @@
 from telegram.ext import Updater, MessageHandler, Filters
 from telegram_util import getDisplayUserHtml, log_on_fail, TimedDeleter, tryDelete, splitCommand
 from telegram import ChatPermissions
-from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete, veryBadMsg
+from db import shouldKick, kicklist, allowlist, addBlocklist, badText, shouldDelete, veryBadMsg, mutelist
 import time
 
 td = TimedDeleter()
@@ -82,10 +82,13 @@ def adminAction(msg, action):
 	for target_id in targets:
 		kicklist.remove(target_id)
 		allowlist.remove(target_id)
+		mutelist.remove(target_id)
 		if action == 'kick':
 			kicklist.add(target_id)
 		if action == 'allowlist':
 			allowlist.add(target_id)
+		if action == 'mute':
+			mutelist.add(target_id)
 
 	display_user = [getDisplayUserHtml(targets[uid]) if targets[uid] else str(uid) for uid in targets]
 	msg.edit_text(text=' '.join(display_user) + ': ' + action, parse_mode='HTML')
@@ -178,10 +181,12 @@ def handleAdmin(update, context):
 	msg = update.effective_message
 	if not msg or msg.chat.id != debug_group.id:
 		return
-	if msg.text in ['m', 'k']:
+	if msg.text in ['k']:
 		adminAction(msg, 'kick')
 	if msg.text in ['w']:  
 		adminAction(msg, 'allowlist')
+	if msg.text in ['m']:  
+		adminAction(msg, 'mute')
 	if msg.text in ['r']:  
 		adminAction(msg, 'reset')
 	handleCommand(msg)
@@ -198,7 +203,8 @@ def handleGroupInternal(msg):
 	timeout = shouldDelete(msg)
 	if timeout == float('Inf'):
 		return log_info
-	if timeout == 0 and msg.from_user.id in high_risk_users and veryBadMsg(msg):
+	if ((timeout == 0 and msg.from_user.id in high_risk_users and veryBadMsg(msg)) 
+			or (msg.from_user.id in mutelist.items())):
 		replyText(msg, '非常抱歉，您的信息被机器人认为有广告的嫌疑，已转交人工审核。审核通过后会归还您发言的权利。', 0.2)
 		tryDelete(msg)
 		log_info.kicked = 'muted'

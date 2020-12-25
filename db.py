@@ -3,6 +3,7 @@ import plain_db
 
 allowlist = plain_db.loadKeyOnlyDB('allowlist')
 kicklist = plain_db.loadKeyOnlyDB('kicklist')
+mutelist = plain_db.loadKeyOnlyDB('mutelist')
 blocklist = plain_db.LargeDB('blocklist', isIntValue=True)
 
 def addBlocklist(text):
