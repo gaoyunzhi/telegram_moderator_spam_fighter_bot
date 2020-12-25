@@ -229,20 +229,12 @@ def deleteMsgHandle(update, context):
 	update.message.delete()
 
 if __name__ == '__main__':
-	for user_id in kicklist.items():
-		try:
-			bot.get_user_profile_photos(user_id)
-			time.sleep(0.05)
-		except Exception as e:
-			print(user_id, str(e))
-			kicklist.remove(user_id)
-	# dp = updater.dispatcher
-	# dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
-	# dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, deleteMsgHandle), group = 2)
-	# dp.add_handler(MessageHandler(Filters.group & \
-	# 		(~ Filters.status_update.left_chat_member) & \
-	# 		(~ Filters.status_update.new_chat_members), handleGroup), group = 3)
-	# dp.add_handler(MessageHandler(Filters.update.channel_posts, handleAdmin), group = 4)
-
-	# updater.start_polling()
-	# updater.idle()
+	dp = updater.dispatcher
+	dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
+	dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, deleteMsgHandle), group = 2)
+	dp.add_handler(MessageHandler(Filters.group & \
+			(~ Filters.status_update.left_chat_member) & \
+			(~ Filters.status_update.new_chat_members), handleGroup), group = 3)
+	dp.add_handler(MessageHandler(Filters.update.channel_posts, handleAdmin), group = 4)
+	updater.start_polling()
+	updater.idle()
