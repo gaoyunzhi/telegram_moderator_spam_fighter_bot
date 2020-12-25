@@ -60,8 +60,8 @@ def shouldDelete(msg):
 
 def veryBadMsg(msg):
     if msg.forward_from_chat:
-        if msg.forward_from_chat.title in ['新闻频道', '新闻网', '我的频道', 
-            '点我有惊喜', '引流推广', '自由之声🌈', '业务咨询']:
+        if matchKey(msg.forward_from_chat.title, ['新闻频道', '新闻网', '我的频道', 
+            '点我有惊喜', '引流推广', '自由之声🌈', '业务咨询', '大家好']):
             return True
         if badTextScore(msg.forward_from_chat.title)[0]:
             return True
