@@ -232,8 +232,10 @@ if __name__ == '__main__':
 	for user_id in kicklist.items():
 		try:
 			bot.get_user_profile_photos(user_id)
-		except:
-			
+			time.sleep(1)
+		except Exception as e:
+			print(user_id, str(e))
+			kicklist.remove(user_id)
 	# dp = updater.dispatcher
 	# dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, handleJoin), group=1)
 	# dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, deleteMsgHandle), group = 2)
