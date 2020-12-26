@@ -58,7 +58,7 @@ def shouldDelete(msg):
         return 20
     return sorted(list(getTimeout(msg)))[0]
 
-def veryBadMsg(msg):
+def veryBadMsg(msg, has_similar_log):
     if msg.forward_from_chat:
         if matchKey(msg.forward_from_chat.title, ['新闻频道', '新闻网', '我的频道', 
             '点我有惊喜', '引流推广', '自由之声🌈', '业务咨询', '大家好']):
@@ -75,4 +75,6 @@ def veryBadMsg(msg):
     for piece in (msg.text or '').split():
         if piece.split('/')[-2:][0] == 't.me':
             return True
+    if has_similar_log and msg.photo and (not msg.media_group_id) and (not msg.caption):
+        return True
     return False
