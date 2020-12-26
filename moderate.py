@@ -203,14 +203,14 @@ def handleGroupInternal(msg):
 	timeout = shouldDelete(msg)
 	if timeout == float('Inf'):
 		return log_info
-	if ((timeout == 0 and msg.from_user.id in high_risk_users and veryBadMsg(msg, getSimilarLogs(log_info)[0])) 
+	if ((timeout == 0 and msg.from_user.id in high_risk_users and veryBadMsg(msg, getSimilarLogs(log_info)[2])) 
 			or (msg.from_user.id in mutelist.items())):
 		replyText(msg, '非常抱歉，您的信息被机器人认为有广告的嫌疑，已转交人工审核。审核通过后会归还您发言的权利。', 0.2)
 		tryDelete(msg)
 		log_info.kicked = 'muted'
 		mute(msg)
 		return log_info
-	if veryBadMsg(msg, getSimilarLogs(log_info)[0]):
+	if veryBadMsg(msg, getSimilarLogs(log_info)[2]):
 		high_risk_users.add(msg.from_user.id)
 		log_info.kicked = 'noted'
 	replyText(msg, '非常抱歉，本群不支持转发与多媒体信息，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
