@@ -212,6 +212,7 @@ def handleGroupInternal(msg):
 		return log_info
 	if veryBadMsg(msg):
 		high_risk_users.add(msg.from_user.id)
+		log_info.kicked = 'noted'
 	replyText(msg, '非常抱歉，本群不支持转发与多媒体信息，我们将在%d分钟后自动删除您的消息。' % int(timeout + 1), 0.2)
 	td.delete(msg, timeout)
 	log_info.delete = int(timeout)

@@ -70,4 +70,9 @@ def veryBadMsg(msg):
         return True
     if badTextScore(msg.caption)[0]:
         return True
+    if 'joinchat' in (msg.text or ''):
+        return True
+    for piece in (msg.text or '').split():
+        if piece.split('/')[-2:][0] == 't.me':
+            return True
     return False
