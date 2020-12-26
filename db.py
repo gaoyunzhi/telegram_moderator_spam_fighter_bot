@@ -75,6 +75,8 @@ def veryBadMsg(msg, has_similar_log):
     for piece in (msg.text or '').split():
         if piece.split('/')[-2:][0] == 't.me':
             return True
+    if msg.contact:
+        return True
     if has_similar_log: 
         if msg.photo and (not msg.media_group_id) and (not msg.caption):
             return True
