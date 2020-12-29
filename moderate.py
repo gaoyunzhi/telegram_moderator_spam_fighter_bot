@@ -204,7 +204,7 @@ def handleGroupInternal(msg):
 	if timeout == float('Inf'):
 		return log_info
 	if ((timeout == 0 and msg.from_user.id in high_risk_users and veryBadMsg(msg, getSimilarLogs(log_info)[2])) 
-			or (msg.from_user.id in mutelist.items())):
+			or (str(msg.from_user.id) in mutelist.items())):
 		replyText(msg, '非常抱歉，您的信息被机器人认为有广告的嫌疑，已转交人工审核。审核通过后会归还您发言的权利。', 0.2)
 		tryDelete(msg)
 		log_info.kicked = 'muted'
