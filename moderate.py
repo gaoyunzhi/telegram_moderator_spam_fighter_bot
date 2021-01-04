@@ -113,6 +113,7 @@ def getRawLogInfo(msg):
 		info.size = msg.video.file_size
 	if msg.document:
 		info.size = msg.document.file_size
+		print('moderator_debug msg.document.file_size', info.size)
 	return info
 
 def isSimilarLog(log1, log2):
