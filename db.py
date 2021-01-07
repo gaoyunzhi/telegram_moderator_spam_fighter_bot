@@ -80,7 +80,7 @@ def veryBadMsg(msg, has_similar_log):
     if has_similar_log: 
         if msg.photo and (not msg.media_group_id) and (not msg.caption):
             return True
-        if msg.document and badText(msg.document.file_name) and (not msg.caption):
+        if msg.document and badTextScore(msg.document.file_name)[0] and (not msg.caption):
             return True
         if (msg.forward_from_chat or msg.forward_from) and badText(msg.text):
             return True
